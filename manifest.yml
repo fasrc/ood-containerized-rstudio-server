@@ -1,0 +1,7 @@
+---
+name: RStudio (Rocker)
+category: Interactive Apps
+subcategory: Servers
+role: batch_connect
+description: |
+  This app will launch a [Rocker](https://www.rocker-project.org/images/) instance of [RStudio Server](https://www.rstudio.com/products/rstudio-server/) on an Odyssey compute node.

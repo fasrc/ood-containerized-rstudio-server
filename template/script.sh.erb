@@ -1,0 +1,36 @@
+#
+# Start RStudio Server
+#
+
+container_image=/n/home12/nweeks/rocker-rstudio_3.6.0.sif 
+
+# Set working directory to home directory
+cd "${HOME}"
+
+set -x
+# Launch the RStudio Server
+echo "Starting up rserver..."
+
+R_VERSION=$(singularity exec --cleanenv --contain ${container_image} Rscript -e 'cat(R.Version()$major,sub(".[0-9]+$","",R.Version()$minor), sep=".")')
+R_HOME=$(singularity exec --cleanenv --contain ${container_image} R RHOME)
+R_LIBS_USER=${HOME}/R/rocker/${R_VERSION}
+WORKDIR=/scratch/${USER}/${SLURM_JOB_ID}
+mkdir -m 700 -p ${WORKDIR}/tmp "${R_LIBS_USER}"
+
+# Debian /usr/local/lib/R/etc/Renviron hard-codes R_LIBS_USER to /usr/local/lib/R/site-library;
+# can override in /etc/R/Renviron.site
+echo "R_LIBS_USER=$R_LIBS_USER" > ${WORKDIR}/Renviron.site
+#echo 'log-stderr=1' > ${WORKDIR}/rsession.conf
+# --bind "${WORKDIR}/rsession.conf:/etc/rstudio/rsession.conf" \
+
+singularity exec --cleanenv \
+ --bind "${WORKDIR}/tmp:/tmp" \
+ --bind "${WORKDIR}/Renviron.site:${R_HOME}/etc/Renviron.site" \
+ "${container_image}" \
+ rserver \
+ --www-port "${port}" \
+ --auth-none 0 \
+ --auth-encrypt-password 0 \
+ --auth-pam-helper-path=pam-helper
+
+rm -rf "${RSESSION_DIR}"
