@@ -11,6 +11,13 @@ set -x
 # Launch the RStudio Server
 echo "Starting up rserver..."
 
+# instead of setting session-timeout-minutes=0 in /etc/rstudio/rsession.conf
+# per section 5.2.2 (Session Timeout) in
+# https://docs.rstudio.com/ide/server-pro/r-sessions.html#user-and-group-profiles,
+# set (undocumented) environment variable gleaned from source code:
+# https://github.com/rstudio/rstudio/blob/master/src/cpp/server/ServerSessionManager.cpp#L111
+export SINGULARITYENV_RSTUDIO_SESSION_TIMEOUT=0
+
 R_VERSION=$(singularity exec --cleanenv --contain ${container_image} Rscript -e 'cat(R.Version()$major,sub(".[0-9]+$","",R.Version()$minor), sep=".")')
 R_HOME=$(singularity exec --cleanenv --contain ${container_image} R RHOME)
 R_LIBS_USER=${HOME}/R/rocker/${R_VERSION}
