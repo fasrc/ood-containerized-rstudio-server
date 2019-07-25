@@ -28,6 +28,13 @@ attributes:
     max:   32
     widget: number_field
     help: "Number of CPUs to allocate"
+  r_version:
+    widget: select
+    label: "RStudio Server image"
+    help: "This defines the version of R you want to use."
+    options:
+      - [ "rocker/ml-gpu (tidyverse + tensorflow GPU + keras)", "/n/home12/nweeks/ml:3.6.0.sif" ]
+      - [ "tidyverse-seurat (tidyverse + Seurat)",              "/n/scratchssdlfs/singularity_images/informatics/2019-08-workshop/rocker-tidyverse-seurat:3.6.1.sif" ]
   bc_account:
     label: "Slurm Account"
     help: "If you are not in multiple labs please leave this blank."
@@ -39,4 +46,5 @@ form:
   - custom_time
   - bc_email_on_started
   - custom_email_address
+  - r_version
   - bc_account

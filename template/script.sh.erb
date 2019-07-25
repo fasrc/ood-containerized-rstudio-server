@@ -2,7 +2,7 @@
 # Start RStudio Server
 #
 
-container_image=/n/home12/nweeks/rocker-rstudio_3.6.0.sif 
+container_image=<%= context.r_version %>
 
 # Set working directory to home directory
 cd "${HOME}"
@@ -39,5 +39,3 @@ singularity exec --cleanenv \
  --auth-none 0 \
  --auth-encrypt-password 0 \
  --auth-pam-helper-path=pam-helper
-
-rm -rf "${RSESSION_DIR}"
