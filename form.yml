@@ -34,7 +34,7 @@ attributes:
     help: "This defines the version of R you want to use."
     options:
       - [ "rocker/ml-gpu (tidyverse + tensorflow GPU + keras)", "/n/home12/nweeks/ml:3.6.0.sif" ]
-      - [ "tidyverse-seurat (tidyverse + Seurat)",              "/n/scratchssdlfs/singularity_images/informatics/2019-08-workshop/rocker-tidyverse-seurat:3.6.1.sif" ]
+      - [ "tidyverse-seurat-isee (tidyverse + Seurat + iSEE)",              "/n/scratchssdlfs/singularity_images/informatics/2019-08-workshop/rocker-tidyverse-seurat-shiny_3.6.1-2019-07-29-727a290c84f9.simg" ]
   bc_account:
     label: "Slurm Account"
     help: "If you are not in multiple labs please leave this blank."
