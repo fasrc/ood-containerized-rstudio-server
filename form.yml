@@ -33,8 +33,8 @@ attributes:
     label: "RStudio Server image"
     help: "This defines the version of R you want to use."
     options:
-      - [ "rocker/ml-gpu (tidyverse + tensorflow GPU + keras)", "/n/home12/nweeks/ml:3.6.0.sif" ]
-      - [ "tidyverse-seurat-isee (tidyverse + Seurat + iSEE)",              "/n/scratchssdlfs/singularity_images/informatics/2019-08-workshop/rocker-tidyverse-seurat-shiny_3.6.1-2019-07-29-727a290c84f9.simg" ]
+      - [ "rocker/ml-gpu:3.6.0", "/n/home12/nweeks/ml:3.6.0.sif" ]
+      - [ "rocker/tidyverse:3.6.1 + iSEE,Seurat", "/n/scratchssdlfs/singularity_images/informatics/2019-08-workshop/rocker-tidyverse-seurat-isee_3.6.1.simg" ]
   bc_account:
     label: "Slurm Account"
     help: "If you are not in multiple labs please leave this blank."
