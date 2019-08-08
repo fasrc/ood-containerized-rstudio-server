@@ -1,5 +1,5 @@
 ---
-title: "RStudio (Rocker)"
+title: "RStudio Server (Nanocourse 2019)"
 cluster: "odyssey3"
 attributes:
   modules: null
@@ -33,7 +33,7 @@ attributes:
     label: "RStudio Server image"
     help: "This defines the version of R you want to use."
     options:
-      - [ "rocker/tidyverse:3.6.1 + packages for R, Single Cell, & Differential Expression workshops", "/n/scratchssdlfs/singularity_images/informatics/2019-08-workshop/rocker-tidyverse:3.6.1-fas-informatics.sif" ]
+      - [ "rocker/tidyverse:3.6.1 + packages for Bioinformatics Nanocourse 2019", "/n/scratchssdlfs/singularity_images/informatics/2019-08-workshop/rocker-tidyverse:3.6.1-fas-informatics.sif" ]
 #     - [ "rocker/ml-gpu:3.6.0", "/n/home12/nweeks/ml:3.6.0.sif" ]
   bc_account:
     label: "Slurm Account"
