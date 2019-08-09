@@ -2,6 +2,7 @@
 batch_connect:
   template: "basic"
 script:
+  reservation_id: <%= custom_reservation %>
   email: <%= custom_email_address %>
   native:
     - "--mem=<%= custom_memory_per_node.blank? ? 1 : custom_memory_per_node.to_s %>G"

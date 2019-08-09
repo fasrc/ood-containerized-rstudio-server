@@ -35,6 +35,9 @@ attributes:
     options:
       - [ "rocker/tidyverse:3.6.1 + packages for Bioinformatics Nanocourse 2019", "/n/scratchssdlfs/singularity_images/informatics/2019-08-workshop/rocker-tidyverse:3.6.1-fas-informatics.sif" ]
 #     - [ "rocker/ml-gpu:3.6.0", "/n/home12/nweeks/ml:3.6.0.sif" ]
+  custom_reservation:
+    label: Reservation
+    widget: text_field
   bc_account:
     label: "Slurm Account"
     help: "If you are not in multiple labs please leave this blank."
@@ -47,4 +50,5 @@ form:
   - bc_email_on_started
   - custom_email_address
   - r_version
+  - custom_reservation
   - bc_account
