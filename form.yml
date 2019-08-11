@@ -9,7 +9,7 @@ attributes:
     value: "04:00:00"
     widget: text_field
   bc_queue: 
-    value: "test"
+    value: "general"
   custom_email_address:
     label: email address for job status notification
     widget: text_field
@@ -18,14 +18,14 @@ attributes:
     value: 4
     min:   1
     step:  1
-    max:   120
+    max:   8
     widget: number_field
   custom_num_cores:
     label: Number of cores
     value: 1
     min:   1
     step:  1
-    max:   32
+    max:   2
     widget: number_field
     help: "Number of CPUs to allocate"
   r_version:
@@ -38,8 +38,10 @@ attributes:
   custom_reservation:
     label: Reservation
     widget: text_field
+    value: "bioinformatics"
   bc_account:
     label: "Slurm Account"
+    value: "informatics_workshop"
     help: "If you are not in multiple labs please leave this blank."
 form:
   - modules
