@@ -28,9 +28,16 @@ mkdir -m 700 -p ${WORKDIR}/tmp "${R_LIBS_USER}"
 # Debian /usr/local/lib/R/etc/Renviron hard-codes R_LIBS_USER to /usr/local/lib/R/site-library :
 # https://github.com/rocker-org/rocker-versioned/issues/153
 # can override in /etc/R/Renviron.site
-echo "R_LIBS_USER=$R_LIBS_USER" > ${WORKDIR}/Renviron.site
+cat >${WORKDIR}/Renviron.site <<END
+R_LIBS_USER=$R_LIBS_USER
+PONG_PORT=${pong_port}
+PONG_HTTP_ORIGIN='https://vdi.rc.fas.harvard.edu'
+PONG_URL_PREFIX="/node/${host}/${pong_port}/"
+END
+
 #echo 'log-stderr=1' > ${WORKDIR}/rsession.conf
 # --bind "${WORKDIR}/rsession.conf:/etc/rstudio/rsession.conf" \
+
 
 singularity exec --cleanenv \
  --bind "${WORKDIR}/tmp:/tmp" \
