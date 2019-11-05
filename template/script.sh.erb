@@ -18,9 +18,6 @@ echo "Starting up rserver..."
 # https://github.com/rstudio/rstudio/blob/master/src/cpp/server/ServerSessionManager.cpp#L111
 export SINGULARITYENV_RSTUDIO_SESSION_TIMEOUT=0
 
-# prevent OpenBLAS (and any other OpenMP-enhanced libraries used by R) from spawning too many threads
-export SINGULARITYENV_OMP_NUM_THREADS=${SLURM_JOB_CPUS_PER_NODE}
-
 R_VERSION=$(singularity exec --cleanenv --contain ${container_image} Rscript -e 'cat(R.Version()$major,sub(".[0-9]+$","",R.Version()$minor), sep=".")')
 R_HOME=$(singularity exec --cleanenv --contain ${container_image} R RHOME)
 R_LIBS_USER=${HOME}/R/ifxrstudio/${R_VERSION}
@@ -31,20 +28,32 @@ mkdir -m 700 -p ${WORKDIR}/tmp "${R_LIBS_USER}"
 # Debian /usr/local/lib/R/etc/Renviron hard-codes R_LIBS_USER to /usr/local/lib/R/site-library :
 # https://github.com/rocker-org/rocker-versioned/issues/153
 # can override in /etc/R/Renviron.site
-cat >${WORKDIR}/Renviron.site <<END
-R_LIBS_USER=$R_LIBS_USER
+#
+# However, rsession needs to start with OMP_NUM_THREADS set to prevent OpenBLAS
+# (and any other OpenMP-enhanced libraries used by R) from spawning too many
+# threads. Renviron.site appears to be processed too late to prevent this (any
+# environment variables set therein are not in rsession's environment) is not
+# in the , so instead a wrapper script is created for rsession.
+
+cat > ${WORKDIR}/rsession.sh <<END
+#!/bin/sh
+set -o xtrace
+export OMP_NUM_THREADS=${SLURM_JOB_CPUS_PER_NODE}
+exec rsession --r-libs-user "${R_LIBS_USER}" "\${@}"
 END
+
+chmod +x ${WORKDIR}/rsession.sh
 
 #echo 'log-stderr=1' > ${WORKDIR}/rsession.conf
 # --bind "${WORKDIR}/rsession.conf:/etc/rstudio/rsession.conf" \
 
-
 singularity exec --cleanenv \
  --bind "${WORKDIR}/tmp:/tmp" \
- --bind "${WORKDIR}/Renviron.site:${R_HOME}/etc/Renviron.site" \
+ --bind "${WORKDIR}/rsession.sh:/etc/rstudio/rsession.sh" \
  "${container_image}" \
  rserver \
  --www-port "${port}" \
  --auth-none 0 \
  --auth-encrypt-password 0 \
- --auth-pam-helper-path=pam-helper
+ --auth-pam-helper-path=pam-helper \
+ --rsession-path=/etc/rstudio/rsession.sh
