@@ -1,7 +1,14 @@
 ---
-name: RStudio Server (Nanocourse 2019)
+name: RStudio Server (Bioconductor + tidyverse)
 category: Interactive Apps
 subcategory: FAS Informatics
 role: batch_connect
 description: |
-  This app will launch a [Rocker](https://www.rocker-project.org/images/) instance of [RStudio Server](https://www.rstudio.com/products/rstudio-server/) on an Odyssey compute node.
+  This app will launch an [RStudio Server](https://www.rstudio.com/products/rstudio-server/) instance on a FAS RC compute node.
+  The base image is [bioconductor/bioconductor_full](https://hub.docker.com/r/bioconductor/bioconductor_full) with additional software from [rocker/tidyverse and rocker/verse](https://hub.docker.com/r/rocker/verse), as well as several R packages used by FAS Informatics.
+
+  This image provides a common software environment for FAS Informatics workshops and general-purpose single-node RStudio Server jobs.
+  FAS RC environment modules and Slurm are *not* accessible from this instance.
+  For the FAS RC RStudio Server with environment module and Slurm support, see *Interactive Apps > Servers > RStudio Server*
+
+  User-installed R libraries will be installed in *~/R/ifxrstudio/\<R_VERSION\>*. 

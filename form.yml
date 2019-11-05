@@ -1,56 +1,69 @@
 ---
-title: "RStudio Server (Nanocourse 2019)"
+title: "RStudio Server (Bioconductor + tidyverse)"
 cluster: "odyssey3"
 attributes:
   modules: null
-  extra_jupyter_args: ""
   custom_time:
-    label: "Allocated Time (expressed in MM , or HH:MM:SS , or DD-HH:MM)."
+    label: "Allocated Time (expressed in MM , or HH:MM:SS , or DD-HH:MM)"
     value: "04:00:00"
     widget: text_field
+    help: |
+      *sbatch -t, --time=\<time\>*
   bc_queue: 
-    value: "general"
+    value: "test"
+    help: |
+      *sbatch -p, --partition=\<partition_names\>*
+
+      [Slurm partition](https://www.rc.fas.harvard.edu/resources/running-jobs/#Slurm_partitions) name (e.g., **shared** ), or comma-separated list of partition names (e.g., **shared,test** )
   custom_email_address:
-    label: email address for job status notification
+    label: (optional) email address for job status notification
     widget: text_field
   custom_memory_per_node:
     label: Memory Allocation in GB
     value: 4
     min:   1
     step:  1
-    max:   8
+    max:   96
     widget: number_field
+    help: |
+      *sbatch --mem=\<size\>G*
   custom_num_cores:
-    label: Number of cores
+    label: "Number of CPUs to allocate"
     value: 1
     min:   1
     step:  1
-    max:   2
+    max:   24
     widget: number_field
-    help: "Number of CPUs to allocate"
+    help: |
+      *sbatch -c, --cpus-per-task=\<ncpus\>*
   r_version:
     widget: select
     label: "RStudio Server image"
     help: "This defines the version of R you want to use."
     options:
-      - [ "rocker/tidyverse:3.6.1 + packages for Bioinformatics Nanocourse 2019", "/n/scratchssdlfs/singularity_images/informatics/2019-08-workshop/rocker-tidyverse:3.6.1-fas-informatics.sif" ]
-#     - [ "rocker/ml-gpu:3.6.0", "/n/home12/nweeks/ml:3.6.0.sif" ]
+      - [ "bioconductor_full:RELEASE_3_9 + rocker/verse + FAS informatics R packages", "/n/singularity_images/informatics/ifxrstudio/ifxrstudio:RELEASE_3_9.sif" ]
   custom_reservation:
-    label: Reservation
+    label: "(optional) Slurm Reservation"
     widget: text_field
-    value: "bioinformatics"
+    help: |
+      *sbatch --reservation=\<name\>*
+
+      Leave blank if you do not have a Slurm reservation
+
   bc_account:
-    label: "Slurm Account"
-    value: "informatics_workshop"
-    help: "If you are not in multiple labs please leave this blank."
+    label: "(optional) Slurm Account"
+    help: |
+      *sbatch -A, --account=\<account\>*
+
+      Leave blank if you do not have multiple Slurm accounts
 form:
   - modules
   - bc_queue
   - custom_memory_per_node
   - custom_num_cores
   - custom_time
+  - r_version
   - bc_email_on_started
   - custom_email_address
-  - r_version
   - custom_reservation
   - bc_account

@@ -18,9 +18,12 @@ echo "Starting up rserver..."
 # https://github.com/rstudio/rstudio/blob/master/src/cpp/server/ServerSessionManager.cpp#L111
 export SINGULARITYENV_RSTUDIO_SESSION_TIMEOUT=0
 
+# prevent OpenBLAS (and any other OpenMP-enhanced libraries used by R) from spawning too many threads
+export SINGULARITYENV_OMP_NUM_THREADS=${SLURM_JOB_CPUS_PER_NODE}
+
 R_VERSION=$(singularity exec --cleanenv --contain ${container_image} Rscript -e 'cat(R.Version()$major,sub(".[0-9]+$","",R.Version()$minor), sep=".")')
 R_HOME=$(singularity exec --cleanenv --contain ${container_image} R RHOME)
-R_LIBS_USER=${HOME}/R/rocker/${R_VERSION}
+R_LIBS_USER=${HOME}/R/ifxrstudio/${R_VERSION}
 # Need a unique /tmp for this job for /tmp/rstudio-rsession & /tmp/rstudio-server
 WORKDIR=/scratch/${USER}/${SLURM_JOB_ID}
 mkdir -m 700 -p ${WORKDIR}/tmp "${R_LIBS_USER}"
@@ -30,9 +33,6 @@ mkdir -m 700 -p ${WORKDIR}/tmp "${R_LIBS_USER}"
 # can override in /etc/R/Renviron.site
 cat >${WORKDIR}/Renviron.site <<END
 R_LIBS_USER=$R_LIBS_USER
-PONG_PORT=${pong_port}
-PONG_HTTP_ORIGIN='https://vdi.rc.fas.harvard.edu'
-PONG_URL_PREFIX="/node/${host}/${pong_port}/"
 END
 
 #echo 'log-stderr=1' > ${WORKDIR}/rsession.conf
