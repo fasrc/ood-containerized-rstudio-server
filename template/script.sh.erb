@@ -28,8 +28,11 @@ mkdir -m 700 -p ${WORKDIR}/tmp "${R_LIBS_USER}"
 # Debian /usr/local/lib/R/etc/Renviron hard-codes R_LIBS_USER to /usr/local/lib/R/site-library :
 # https://github.com/rocker-org/rocker-versioned/issues/153
 # can override in /etc/R/Renviron.site
-#
-# However, rsession needs to start with OMP_NUM_THREADS set to prevent OpenBLAS
+cat >${WORKDIR}/Renviron.site <<END
+R_LIBS_USER=$R_LIBS_USER
+END
+
+# rsession needs to start with OMP_NUM_THREADS set to prevent OpenBLAS
 # (and any other OpenMP-enhanced libraries used by R) from spawning too many
 # threads. Renviron.site appears to be processed too late to prevent this (any
 # environment variables set therein are not in rsession's environment) is not
@@ -39,7 +42,7 @@ cat > ${WORKDIR}/rsession.sh <<END
 #!/bin/sh
 set -o xtrace
 export OMP_NUM_THREADS=${SLURM_JOB_CPUS_PER_NODE}
-exec rsession --r-libs-user "${R_LIBS_USER}" "\${@}"
+exec rsession "\${@}"
 END
 
 chmod +x ${WORKDIR}/rsession.sh
@@ -49,6 +52,7 @@ chmod +x ${WORKDIR}/rsession.sh
 
 singularity exec --cleanenv \
  --bind "${WORKDIR}/tmp:/tmp" \
+ --bind "${WORKDIR}/Renviron.site:${R_HOME}/etc/Renviron.site" \
  --bind "${WORKDIR}/rsession.sh:/etc/rstudio/rsession.sh" \
  "${container_image}" \
  rserver \
