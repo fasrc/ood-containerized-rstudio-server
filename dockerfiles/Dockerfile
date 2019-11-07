@@ -107,3 +107,6 @@ RUN Rscript -e 'BiocManager::install(c("MSnbase", "ROTS"), update=FALSE, ask=FAL
 
 ####### for 2019-11 FAS Informatics workshops
 RUN install2.r R2jags arm lme4 && rm -rf /tmp/*
+
+####### for afreedman's differential expression workshop (suggested dependency of limma)
+RUN install2.r statmod && rm -rf /tmp/*
