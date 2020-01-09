@@ -20,17 +20,10 @@ export SINGULARITYENV_RSTUDIO_SESSION_TIMEOUT=0
 
 R_VERSION=$(singularity exec --cleanenv --contain ${container_image} Rscript -e 'cat(R.Version()$major,sub(".[0-9]+$","",R.Version()$minor), sep=".")')
 R_HOME=$(singularity exec --cleanenv --contain ${container_image} R RHOME)
-R_LIBS_USER=${HOME}/R/ifxrstudio/${R_VERSION}
+SINGULARITYENV_R_LIBS_USER=${HOME}/R/ifxrstudio/${R_VERSION}
 # Need a unique /tmp for this job for /tmp/rstudio-rsession & /tmp/rstudio-server
 WORKDIR=/scratch/${USER}/${SLURM_JOB_ID}
-mkdir -m 700 -p ${WORKDIR}/tmp "${R_LIBS_USER}"
-
-# Debian /usr/local/lib/R/etc/Renviron hard-codes R_LIBS_USER to /usr/local/lib/R/site-library :
-# https://github.com/rocker-org/rocker-versioned/issues/153
-# can override in /etc/R/Renviron.site
-cat >${WORKDIR}/Renviron.site <<END
-R_LIBS_USER=$R_LIBS_USER
-END
+mkdir -m 700 -p ${WORKDIR}/tmp "${SINGULARITYENV_R_LIBS_USER}"
 
 # rsession needs to start with OMP_NUM_THREADS set to prevent OpenBLAS
 # (and any other OpenMP-enhanced libraries used by R) from spawning too many
@@ -52,7 +45,6 @@ chmod +x ${WORKDIR}/rsession.sh
 
 singularity exec --cleanenv \
  --bind "${WORKDIR}/tmp:/tmp" \
- --bind "${WORKDIR}/Renviron.site:${R_HOME}/etc/Renviron.site" \
  --bind "${WORKDIR}/rsession.sh:/etc/rstudio/rsession.sh" \
  "${container_image}" \
  rserver \
