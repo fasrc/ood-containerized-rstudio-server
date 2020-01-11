@@ -1,32 +1,4 @@
-# https://software.intel.com/en-us/articles/how-to-use-zlib-with-intel-ipp-optimization
-
-FROM intel/oneapi-hpckit:2021.1-47.beta03-devel-ubuntu18.04 AS oneapi
-
-RUN apt install -y wget 
-
-SHELL ["/bin/bash", "-c"]
-
-RUN wget -O - https://github.com/madler/zlib/archive/v1.2.8.tar.gz | tar -xzf - \
- && cd zlib-1.2.8 \
- && source /opt/intel/inteloneapi/setvars.sh > /dev/null \
- && tar -xzvf $IPPROOT/components/components_and_examples_lin.tgz \
- && patch -p1 < components/interfaces/ipp_zlib/zlib-1.2.8.patch \
- && export CFLAGS="-m64 -DWITH_IPP -I$IPPROOT/include" \
- && export LDFLAGS="-L$IPPROOT/lib/intel64 -lippdc -lipps -lippcore" \
- && ./configure --prefix=/artifacts/zlib \
- && make shared \
- && make install
-
-# wildcard "*" doesn't seem to work in "COPY --from" source?
-
-RUN find /opt/intel/inteloneapi/ipp/latest/lib/intel64/ -maxdepth 1 -mindepth 1 ! \(  -type f -name '*.so' \) -exec rm -rf {} +
-
-FROM bioconductor/bioconductor_full:RELEASE_3_10
-
-COPY --from=oneapi /artifacts/zlib/lib/libz.so.1.2.8 /lib/x86_64-linux-gnu/libz.so.1.2.8
-COPY --from=oneapi /opt/intel/inteloneapi/ipp/latest/lib/intel64/ /usr/local/lib/
-
-RUN ldconfig
+FROM bioconductor/bioconductor_full:RELEASE_3_9
 
 ######## union rocker/tidyverse
 # https://github.com/rocker-org/rocker-versioned/blob/c0ae40/tidyverse/Dockerfile
@@ -54,14 +26,6 @@ RUN apt-get update -qq && apt-get -y --no-install-recommends install \
 
 ########## union rocker/verse
 # https://github.com/rocker-org/rocker-versioned/blob/4d6def/verse/Dockerfile
-
-# Version-stable CTAN repo from the tlnet archive at texlive.info, used in the
-# TinyTeX installation: chosen as the frozen snapshot of the TeXLive release
-# shipped for the base Debian image of a given rocker/r-ver tag.
-# Debian stretch => TeXLive 2016, frozen release snapshot 2017/04/13
-ARG CTAN_REPO=${CTAN_REPO:-http://www.texlive.info/tlnet-archive/2017/04/13/tlnet}
-ENV CTAN_REPO=${CTAN_REPO}
-
 ENV PATH=$PATH:/opt/TinyTeX/bin/x86_64-linux/
 
 ## Add LaTeX, rticles and bookdown support
@@ -111,9 +75,9 @@ RUN wget "https://travis-bin.yihui.name/texlive-local.deb" \
     "https://github.com/yihui/tinytex/raw/master/tools/install-unx.sh" | \
     sh -s - --admin --no-path \
   && mv ~/.TinyTeX /opt/TinyTeX \
-  && (/opt/TinyTeX/bin/*/tlmgr path add || true) \
+  && /opt/TinyTeX/bin/*/tlmgr path add \
   && tlmgr install ae inconsolata listings metafont mfware parskip pdfcrop tex \
-  && (tlmgr path add || true) \
+  && tlmgr path add \
   && Rscript -e "tinytex::r_texmf()" \
   && chown -R root:staff /opt/TinyTeX \
   && chown -R root:staff /usr/local/lib/R/site-library \
@@ -132,20 +96,17 @@ RUN pip install --no-cache-dir umap-learn
 
 RUN install2.r Seurat && rm -rf /tmp/*
 
-####### 2019-08 DE nanocourse
-# https://github.com/harvardinformatics/micro-course/blob/nanocourse_2019/bulkRNAseq/DE/differential_expression_nanocourse2019.Rmd
+# sleuth
 RUN Rscript -e 'BiocManager::install(c("DESeq2", "biomaRt", "edgeR", "limma", "rhdf5"), update=FALSE, ask=FALSE)'
-
-####### sleuth
 # https://pachterlab.github.io/sleuth/download
-RUN installGithub.r --update FALSE pachterlab/sleuth@4e221a16117ff4a3bdc56feeca4f69b30d17fec8
- 
-####### for adsouza
+RUN Rscript -e 'devtools::install_github("pachterlab/sleuth")'
+
+######## for adsouza
 RUN install2.r seqinr MKmisc && rm -rf /tmp/*
 RUN Rscript -e 'BiocManager::install(c("MSnbase", "ROTS"), update=FALSE, ask=FALSE)'
 
-####### for tsackton & dkhost's 2019-11 workshop
+####### for 2019-11 FAS Informatics workshops
 RUN install2.r R2jags arm lme4 && rm -rf /tmp/*
 
-####### for afreedman's 2019-11 differential expression workshop (suggested dependency of limma)
+####### for afreedman's differential expression workshop (suggested dependency of limma)
 RUN install2.r statmod && rm -rf /tmp/*
