@@ -18,9 +18,17 @@ echo "Starting up rserver..."
 # https://github.com/rstudio/rstudio/blob/master/src/cpp/server/ServerSessionManager.cpp#L111
 export SINGULARITYENV_RSTUDIO_SESSION_TIMEOUT=0
 
-R_VERSION=$(singularity exec --cleanenv --contain ${container_image} Rscript -e 'cat(R.Version()$major,sub(".[0-9]+$","",R.Version()$minor), sep=".")')
-R_HOME=$(singularity exec --cleanenv --contain ${container_image} R RHOME)
-R_LIBS_USER=${HOME}/R/ifxrstudio/${R_VERSION}
+R_HOME=$(singularity exec --containall ${container_image} R RHOME)
+
+# use a different directory for each image to be safe...
+readonly image_tag=$(basename "${container_image##*:}" .sif)
+if [ ${image_tag} = 'RELEASE_3_9' ] # legacy RELEASE_3_9 used major.minor version
+then
+  R_LIBS_USER=${HOME}/R/ifxrstudio/3.6
+else
+  R_LIBS_USER=${HOME}/R/ifxrstudio/${image_tag}
+fi
+
 # Need a unique /tmp for this job for /tmp/rstudio-rsession & /tmp/rstudio-server
 WORKDIR=/scratch/${USER}/${SLURM_JOB_ID}
 mkdir -m 700 -p ${WORKDIR}/tmp "${R_LIBS_USER}"
@@ -37,11 +45,15 @@ END
 # threads. Renviron.site appears to be processed too late to prevent this (any
 # environment variables set therein are not in rsession's environment) is not
 # in the , so instead a wrapper script is created for rsession.
+#
+# Also set MKL_THREADING_LAYER per:
+# https://github.com/eddelbuettel/mkl4deb#set-an-environment-variable
 
 cat > ${WORKDIR}/rsession.sh <<END
 #!/bin/sh
 set -o xtrace
 export OMP_NUM_THREADS=${SLURM_JOB_CPUS_PER_NODE}
+export MKL_THREADING_LAYER=GNU
 exec rsession "\${@}"
 END
 
@@ -50,14 +62,23 @@ chmod +x ${WORKDIR}/rsession.sh
 #echo 'log-stderr=1' > ${WORKDIR}/rsession.conf
 # --bind "${WORKDIR}/rsession.conf:/etc/rstudio/rsession.conf" \
 
+# bioconductor/bioconductor_docker:RELEASE_3_10 sets USER in Dockerfile:
+# https://github.com/Bioconductor/bioconductor_docker/blob/RELEASE_3_10/Dockerfile#L154
+#
+# Apparently, quay.io/singularity/docker2singularity:v3.5.1 then sets USER in
+# the /.singularity.d/env/10-docker.sh, which overrides any externally-set USER
+# (in the environment of the "singularity exec" commmand). To work around this,
+# setting USER in a shell command that invokes the rserver process
+
 singularity exec --cleanenv \
  --bind "${WORKDIR}/tmp:/tmp" \
  --bind "${WORKDIR}/Renviron.site:${R_HOME}/etc/Renviron.site" \
  --bind "${WORKDIR}/rsession.sh:/etc/rstudio/rsession.sh" \
  "${container_image}" \
+ sh -c "USER=${USER}
  rserver \
- --www-port "${port}" \
+ --www-port ${port} \
  --auth-none 0 \
  --auth-encrypt-password 0 \
  --auth-pam-helper-path=pam-helper \
- --rsession-path=/etc/rstudio/rsession.sh
+ --rsession-path=/etc/rstudio/rsession.sh"

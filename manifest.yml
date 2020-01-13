@@ -5,10 +5,10 @@ subcategory: FAS Informatics
 role: batch_connect
 description: |
   This app will launch an [RStudio Server](https://www.rstudio.com/products/rstudio-server/) instance on a FAS RC compute node.
-  The base image is [bioconductor/bioconductor_full](https://hub.docker.com/r/bioconductor/bioconductor_full) with additional software from [rocker/tidyverse and rocker/verse](https://hub.docker.com/r/rocker/verse), as well as several R packages used by FAS Informatics.
+  The base image is [bioconductor/bioconductor_docker](https://hub.docker.com/r/bioconductor/bioconductor_docker) with additional software from [rocker/tidyverse and rocker/verse](https://hub.docker.com/r/rocker/verse), the [Intel Math Kernel Library (MKL)](https://software.intel.com/en-us/mkl) for improved performance of some R routines, a [zlib compression library optimized with Intel Integrated Performance Primitives](https://software.intel.com/en-us/articles/how-to-use-zlib-with-intel-ipp-optimization), as well as several R packages used by FAS Informatics.
 
   This image provides a common software environment for FAS Informatics workshops and general-purpose single-node RStudio Server jobs.
   FAS RC environment modules and Slurm are *not* accessible from this instance.
   For the FAS RC RStudio Server with environment module and Slurm support, see *Interactive Apps > Servers > RStudio Server*
 
-  User-installed R libraries will be installed in *~/R/ifxrstudio/\<R_VERSION\>*. 
+  User-installed R libraries will be installed in *~/R/ifxrstudio/\<IMAGE_TAG\>*. 
