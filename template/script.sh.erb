@@ -30,8 +30,10 @@ else
 fi
 
 # Need a unique /tmp for this job for /tmp/rstudio-rsession & /tmp/rstudio-server
+# Need writable /var/run/rstudio-server :
+#   https://discourse.osc.edu/t/unable-to-launch-fully-containerized-rstudio/948
 WORKDIR=/scratch/${USER}/${SLURM_JOB_ID}
-mkdir -m 700 -p ${WORKDIR}/tmp "${R_LIBS_USER}"
+mkdir -m 700 -p ${WORKDIR}/tmp ${WORKDIR}/var/run "${R_LIBS_USER}"
 
 # Debian /usr/local/lib/R/etc/Renviron hard-codes R_LIBS_USER to /usr/local/lib/R/site-library :
 # https://github.com/rocker-org/rocker-versioned/issues/153
@@ -72,13 +74,14 @@ chmod +x ${WORKDIR}/rsession.sh
 
 singularity exec --cleanenv \
  --bind "${WORKDIR}/tmp:/tmp" \
+ --bind "${WORKDIR}/var/run:/var/run" \
  --bind "${WORKDIR}/Renviron.site:${R_HOME}/etc/Renviron.site" \
  --bind "${WORKDIR}/rsession.sh:/etc/rstudio/rsession.sh" \
  "${container_image}" \
- sh -c "USER=${USER}
- rserver \
+ sh -c "USER=${USER} rserver \
  --www-port ${port} \
  --auth-none 0 \
  --auth-encrypt-password 0 \
  --auth-pam-helper-path=pam-helper \
+ --auth-revocation-list-dir=/tmp \
  --rsession-path=/etc/rstudio/rsession.sh"

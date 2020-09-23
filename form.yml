@@ -39,10 +39,11 @@ attributes:
   r_version:
     widget: select
     label: "RStudio Server image"
-    help: "This defines the version of R you want to use."
+    help: "This defines the version of R/Bioconductor you want to use."
     options:
-      - [ "bioconductor/bioconductor_docker:RELEASE_3_10 + rocker/verse + FAS informatics R packages", "/n/singularity_images/informatics/ifxrstudio/ifxrstudio:RELEASE_3_10.sif" ]
-      - [ "bioconductor/bioconductor_full:RELEASE_3_9 + rocker/verse + FAS informatics R packages", "/n/singularity_images/informatics/ifxrstudio/ifxrstudio:RELEASE_3_9.sif" ]
+      - [ "Bioconductor 3.11 (R 4.0.0)", "/n/singularity_images/informatics/ifxrstudio/ifxrstudio:RELEASE_3_11.sif" ]
+      - [ "Bioconductor 3.10 (R 3.6.2)", "/n/singularity_images/informatics/ifxrstudio/ifxrstudio:RELEASE_3_10.sif" ]
+      - [ "Bioconductor 3.9 (R 3.6.1)", "/n/singularity_images/informatics/ifxrstudio/ifxrstudio:RELEASE_3_9.sif" ]
   custom_reservation:
     label: "(optional) Slurm Reservation"
     widget: text_field
