@@ -72,6 +72,13 @@ chmod +x ${WORKDIR}/rsession.sh
 # (in the environment of the "singularity exec" commmand). To work around this,
 # setting USER in a shell command that invokes the rserver process
 
+if [ ${image_tag} = 'RELEASE_3_11' ] # --auth-revocation-list-dir option is only available in this release
+then
+  aut_rev_list_dir=" --auth-revocation-list-dir=/tmp "
+else
+ unset aut_rev_list_dir 
+fi
+
 singularity exec --cleanenv \
  --bind "${WORKDIR}/tmp:/tmp" \
  --bind "${WORKDIR}/var/run:/var/run" \
@@ -83,5 +90,5 @@ singularity exec --cleanenv \
  --auth-none 0 \
  --auth-encrypt-password 0 \
  --auth-pam-helper-path=pam-helper \
- --auth-revocation-list-dir=/tmp \
+ ${aut_rev_list_dir}  \
  --rsession-path=/etc/rstudio/rsession.sh"
