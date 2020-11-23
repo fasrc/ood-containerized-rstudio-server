@@ -30,10 +30,10 @@ else
 fi
 
 # Need a unique /tmp for this job for /tmp/rstudio-rsession & /tmp/rstudio-server
-# Need writable /var/run/rstudio-server :
+# Need writable /run/rstudio-server :
 #   https://discourse.osc.edu/t/unable-to-launch-fully-containerized-rstudio/948
 WORKDIR=/scratch/${USER}/${SLURM_JOB_ID}
-mkdir -m 700 -p ${WORKDIR}/tmp ${WORKDIR}/var/run "${R_LIBS_USER}"
+mkdir -m 700 -p ${WORKDIR}/tmp ${WORKDIR}/run "${R_LIBS_USER}"
 
 # Debian /usr/local/lib/R/etc/Renviron hard-codes R_LIBS_USER to /usr/local/lib/R/site-library :
 # https://github.com/rocker-org/rocker-versioned/issues/153
@@ -72,16 +72,9 @@ chmod +x ${WORKDIR}/rsession.sh
 # (in the environment of the "singularity exec" commmand). To work around this,
 # setting USER in a shell command that invokes the rserver process
 
-if [ ${image_tag} = 'RELEASE_3_11' ] # --auth-revocation-list-dir option is only available in this release
-then
-  aut_rev_list_dir=" --auth-revocation-list-dir=/tmp "
-else
- unset aut_rev_list_dir 
-fi
-
 singularity exec --cleanenv \
  --bind "${WORKDIR}/tmp:/tmp" \
- --bind "${WORKDIR}/var/run:/var/run" \
+ --bind "${WORKDIR}/run:/run" \
  --bind "${WORKDIR}/Renviron.site:${R_HOME}/etc/Renviron.site" \
  --bind "${WORKDIR}/rsession.sh:/etc/rstudio/rsession.sh" \
  "${container_image}" \
@@ -90,5 +83,4 @@ singularity exec --cleanenv \
  --auth-none 0 \
  --auth-encrypt-password 0 \
  --auth-pam-helper-path=pam-helper \
- ${aut_rev_list_dir}  \
  --rsession-path=/etc/rstudio/rsession.sh"
