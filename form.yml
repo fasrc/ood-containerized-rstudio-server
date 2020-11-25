@@ -41,6 +41,7 @@ attributes:
     label: "RStudio Server image"
     help: "This defines the version of R/Bioconductor you want to use."
     options:
+      - [ "Bioconductor 3.12 (R 4.0.3)", "/n/singularity_images/informatics/ifxrstudio/ifxrstudio:RELEASE_3_12.sif" ]
       - [ "Bioconductor 3.11 (R 4.0.0)", "/n/singularity_images/informatics/ifxrstudio/ifxrstudio:RELEASE_3_11.sif" ]
       - [ "Bioconductor 3.10 (R 3.6.2)", "/n/singularity_images/informatics/ifxrstudio/ifxrstudio:RELEASE_3_10.sif" ]
       - [ "Bioconductor 3.9 (R 3.6.1)", "/n/singularity_images/informatics/ifxrstudio/ifxrstudio:RELEASE_3_9.sif" ]
