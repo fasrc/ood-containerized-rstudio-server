@@ -29,6 +29,11 @@ else
   R_LIBS_USER=${HOME}/R/ifxrstudio/${image_tag}
 fi
 
+case ${image_tag} in
+  # https://github.com/rstudio/rstudio/issues/5449#issuecomment-534184951
+  RELEASE_3_12) extra_options='--auth-timeout-minutes=0 --auth-stay-signed-in-days=30' ;;
+esac
+
 # Need a unique /tmp for this job for /tmp/rstudio-rsession & /tmp/rstudio-server
 # Need writable /run/rstudio-server :
 #   https://discourse.osc.edu/t/unable-to-launch-fully-containerized-rstudio/948
@@ -83,4 +88,5 @@ singularity exec --cleanenv \
  --auth-none 0 \
  --auth-encrypt-password 0 \
  --auth-pam-helper-path=pam-helper \
+ ${extra_options} \
  --rsession-path=/etc/rstudio/rsession.sh"
