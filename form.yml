@@ -23,7 +23,7 @@ attributes:
     value: 4
     min:   1
     step:  1
-    max:   96
+    max:   500
     widget: number_field
     help: |
       *sbatch --mem=\<size\>G*
@@ -32,7 +32,7 @@ attributes:
     value: 1
     min:   1
     step:  1
-    max:   24
+    max:   64
     widget: number_field
     help: |
       *sbatch -c, --cpus-per-task=\<ncpus\>*
