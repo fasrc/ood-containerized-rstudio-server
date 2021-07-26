@@ -6,8 +6,10 @@ role: batch_connect
 description: |
   This app will launch an [RStudio Server](https://www.rstudio.com/products/rstudio-server/) instance on a FAS RC compute node.
   The base image is [bioconductor/bioconductor_docker](https://hub.docker.com/r/bioconductor/bioconductor_docker) with additional software from [rocker/tidyverse and rocker/verse](https://hub.docker.com/r/rocker/verse).
-  Bioconductor 3.10 also has the [Intel Math Kernel Library (MKL)](https://software.intel.com/en-us/mkl) for improved performance of some R routines, a [zlib compression library optimized with Intel Integrated Performance Primitives](https://software.intel.com/en-us/articles/how-to-use-zlib-with-intel-ipp-optimization), as well as several R packages used by FAS Informatics.
-  Bioconductor 3.12 adds [rocker/geospatial](https://hub.docker.com/r/rocker/geospatial)
+
+  * Bioconductor 3.10 has the [Intel Math Kernel Library (MKL)](https://software.intel.com/en-us/mkl) for improved performance of some R routines, a [zlib compression library optimized with Intel Integrated Performance Primitives](https://software.intel.com/en-us/articles/how-to-use-zlib-with-intel-ipp-optimization), as well as several R packages used by FAS Informatics.
+  * Bioconductor 3.12 adds [rocker/geospatial](https://hub.docker.com/r/rocker/geospatial).
+  * Bioconductor 3.13 adds [RStudio v1.4 Python Support](https://blog.rstudio.com/2020/10/07/rstudio-v1-4-preview-python-support/).
 
   This image provides a common software environment for FAS Informatics workshops and general-purpose single-node RStudio Server jobs.
   FAS RC environment modules and Slurm are *not* accessible from this instance.

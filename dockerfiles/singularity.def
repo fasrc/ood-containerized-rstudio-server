@@ -1,17 +1,27 @@
 Bootstrap: docker
-From: bioconductor/bioconductor_docker:RELEASE_3_12
+From: bioconductor/bioconductor_docker:RELEASE_3_13
+
+# pinning to 20201/06/14 packages (same as RELEASE_3_13 publication date) to
+# address "sf" Rcpp error: https://github.com/r-spatial/sf/issues/1727
 
 # environment variables set by rocker/verse
 %environment
-    export CTAN_REPO=http://mirror.ctan.org/systems/texlive/tlnet
+# https://github.com/rocker-org/rocker-versioned2/issues/139
+    export CTAN_REPO=http://www.texlive.info/tlnet-archive/2021/06/14/tlnet
     export PATH=/usr/local/texlive/bin/x86_64-linux:$PATH
 
 %post
+    # get ENV defined in base image(s) in current environment
+    . /.singularity.d/env/10-docker2singularity.sh
+
+    # https://docs.rstudio.com/rspm/admin/serving-binaries/#using-linux-binary-packages
+    # snapshot date from: https://packagemanager.rstudio.com/client/#/repos/1/overview
+    echo 'options(repos = c(REPO_NAME = "https://packagemanager.rstudio.com/all/__linux__/focal/3531656"))' > $(R RHOME)/etc/Rprofile.site
+    echo 'options(HTTPUserAgent = sprintf("R/%s R (%s)", getRversion(), paste(getRversion(), R.version$platform, R.version$arch, R.version$os)))' >> $(R RHOME)/etc/Rprofile.site
+
 
     ######## union rocker/tidyverse
-    # https://github.com/rocker-org/rocker-versioned2/blob/master/dockerfiles/Dockerfile_tidyverse_4.0.3
-
-    # work around install_tidyverse.sh default-libmysqlclient-dev installation problem in RELEASE_3_12
+    # work around install_tidyverse.sh default-libmysqlclient-dev installation problem in RELEASE_3_13
     apt update \
       && apt install -y --no-install-recommends libmysqlclient-dev \
       && rm -rf /var/lib/apt/lists/*
@@ -19,17 +29,19 @@ From: bioconductor/bioconductor_docker:RELEASE_3_12
     /rocker_scripts/install_tidyverse.sh
 
     ######## union rocker/verse
-    # https://github.com/rocker-org/rocker-versioned2/blob/master/dockerfiles/Dockerfile_verse_4.0.3
-    export CTAN_REPO=http://mirror.ctan.org/systems/texlive/tlnet
+    export CTAN_REPO=http://www.texlive.info/tlnet-archive/2021/06/14/tlnet
     export PATH=/usr/local/texlive/bin/x86_64-linux:$PATH
     /rocker_scripts/install_verse.sh
 
     ######## union rocker/geospatial
-    # https://github.com/rocker-org/rocker-versioned2/blob/master/dockerfiles/Dockerfile_geospatial_4.0.3
     /rocker_scripts/install_geospatial.sh
+
+    # reticulate
+    /rocker_scripts/install_python.sh
 
     # Install default & yihui TinyTex latex package sets to allow knit-to-PDF
     # (hopefully in most cases) without installation of additional LaTeX packages,
     # as /usr/local/texlive is read-only in the Singularity image
-    tlmgr install $(curl https://raw.githubusercontent.com/yihui/tinytex/v0.27/tools/pkgs-custom.txt | tr '\n' ' ')
-    tlmgr install $(curl https://raw.githubusercontent.com/yihui/tinytex/v0.27/tools/pkgs-yihui.txt | tr '\n' ' ')
+    tlmgr update --self
+    tlmgr install $(curl https://raw.githubusercontent.com/yihui/tinytex/v0.32/tools/pkgs-custom.txt | tr '\n' ' ')
+    tlmgr install $(curl https://raw.githubusercontent.com/yihui/tinytex/v0.32/tools/pkgs-yihui.txt | tr '\n' ' ')

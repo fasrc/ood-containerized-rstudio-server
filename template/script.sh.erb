@@ -20,6 +20,14 @@ export SINGULARITYENV_RSTUDIO_SESSION_TIMEOUT=0
 
 R_HOME=$(singularity exec --containall ${container_image} R RHOME)
 
+# Need a unique /tmp for this job for /tmp/rstudio-rsession & /tmp/rstudio-server
+# Need writable /run/rstudio-server :
+#   https://discourse.osc.edu/t/unable-to-launch-fully-containerized-rstudio/948
+WORKDIR=/scratch/${USER}/${SLURM_JOB_ID}
+mkdir -m 700 -p ${WORKDIR}/tmp ${WORKDIR}/run "${R_LIBS_USER}"
+
+export SINGULARITY_BIND="${WORKDIR}/tmp:/tmp,${WORKDIR}/run:/run,${WORKDIR}/rsession.sh:/etc/rstudio/rsession.sh,${WORKDIR}/Renviron.site:${R_HOME}/etc/Renviron.site"
+
 # use a different directory for each image to be safe...
 readonly image_tag=$(basename "${container_image##*:}" .sif)
 if [ ${image_tag} = 'RELEASE_3_9' ] # legacy RELEASE_3_9 used major.minor version
@@ -29,16 +37,25 @@ else
   R_LIBS_USER=${HOME}/R/ifxrstudio/${image_tag}
 fi
 
-case ${image_tag} in
+if [ ${image_tag#RELEASE_3_} -ge 12 ]
+then
   # https://github.com/rstudio/rstudio/issues/5449#issuecomment-534184951
-  RELEASE_3_12) extra_options='--auth-timeout-minutes=0 --auth-stay-signed-in-days=30' ;;
-esac
+  extra_options='--auth-timeout-minutes=0 --auth-stay-signed-in-days=30'
+fi
 
-# Need a unique /tmp for this job for /tmp/rstudio-rsession & /tmp/rstudio-server
-# Need writable /run/rstudio-server :
-#   https://discourse.osc.edu/t/unable-to-launch-fully-containerized-rstudio/948
-WORKDIR=/scratch/${USER}/${SLURM_JOB_ID}
-mkdir -m 700 -p ${WORKDIR}/tmp ${WORKDIR}/run "${R_LIBS_USER}"
+if [ ${image_tag#RELEASE_3_} -ge 13 ]
+then
+  mkdir -m 700 -p ${WORKDIR}/var/lib/rstudio-server 
+  cat > ${WORKDIR}/database.conf <<END
+provider=sqlite
+directory=/var/lib/rstudio-server
+END
+  # explicitly mount /sys to enable RStudio Server 1.4.1717 "Memory
+  # Usage Report" & address startup warning:
+  #     ERROR system error 2 (No # such file or directory)
+  #     [path: /sys/fs/cgroup/memory/memory.limit_in_bytes]...
+  export SINGULARITY_BIND="/sys:/sys,${WORKDIR}/database.conf:/etc/rstudio/database.conf,${WORKDIR}/var/lib/rstudio-server:/var/lib/rstudio-server,${SINGULARITY_BIND}"
+fi
 
 # Debian /usr/local/lib/R/etc/Renviron hard-codes R_LIBS_USER to /usr/local/lib/R/site-library :
 # https://github.com/rocker-org/rocker-versioned/issues/153
@@ -78,10 +95,6 @@ chmod +x ${WORKDIR}/rsession.sh
 # setting USER in a shell command that invokes the rserver process
 
 singularity exec --cleanenv \
- --bind "${WORKDIR}/tmp:/tmp" \
- --bind "${WORKDIR}/run:/run" \
- --bind "${WORKDIR}/Renviron.site:${R_HOME}/etc/Renviron.site" \
- --bind "${WORKDIR}/rsession.sh:/etc/rstudio/rsession.sh" \
  "${container_image}" \
  sh -c "USER=${USER} rserver \
  --www-port ${port} \
