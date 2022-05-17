@@ -24,9 +24,6 @@ R_HOME=$(singularity exec --containall ${container_image} R RHOME)
 # Need writable /run/rstudio-server :
 #   https://discourse.osc.edu/t/unable-to-launch-fully-containerized-rstudio/948
 WORKDIR=/scratch/${USER}/${SLURM_JOB_ID}
-mkdir -m 700 -p ${WORKDIR}/tmp ${WORKDIR}/run "${R_LIBS_USER}"
-
-export SINGULARITY_BIND="${WORKDIR}/tmp:/tmp,${WORKDIR}/run:/run,${WORKDIR}/rsession.sh:/etc/rstudio/rsession.sh,${WORKDIR}/Renviron.site:${R_HOME}/etc/Renviron.site"
 
 # use a different directory for each image to be safe...
 readonly image_tag=$(basename "${container_image##*:}" .sif)
@@ -36,6 +33,10 @@ then
 else
   R_LIBS_USER=${HOME}/R/ifxrstudio/${image_tag}
 fi
+
+mkdir -m 700 -p ${WORKDIR}/tmp ${WORKDIR}/run "${R_LIBS_USER}"
+
+export SINGULARITY_BIND="${WORKDIR}/tmp:/tmp,${WORKDIR}/run:/run,${WORKDIR}/rsession.sh:/etc/rstudio/rsession.sh,${WORKDIR}/Renviron.site:${R_HOME}/etc/Renviron.site"
 
 if [ ${image_tag#RELEASE_3_} -ge 12 ]
 then
@@ -57,9 +58,17 @@ END
   export SINGULARITY_BIND="/sys:/sys,${WORKDIR}/database.conf:/etc/rstudio/database.conf,${WORKDIR}/var/lib/rstudio-server:/var/lib/rstudio-server,${SINGULARITY_BIND}"
 fi
 
-# https://github.com/grst/rstudio-server-conda/pull/18
 if [ ${image_tag#RELEASE_3_} -ge 14 ]
 then
+  # allow python packages to be installed into the venv
+  if [ ! -d "${R_LIBS_USER}"/venv ]
+  then
+    SINGULARITY_BIND='' singularity exec --cleanenv "${container_image}" cp -Rp /opt/venv "${R_LIBS_USER}"/venv
+  fi
+  # disable the pip cache to optimize disk space
+  export SINGULARITYENV_PIP_NO_CACHE_DIR=off
+  export SINGULARITY_BIND="${SINGULARITY_BIND},${R_LIBS_USER}/venv:/opt/venv"
+  # https://github.com/grst/rstudio-server-conda/pull/18
   extra_options="--server-user $USER ${extra_options}"
 fi
 
