@@ -57,6 +57,12 @@ END
   export SINGULARITY_BIND="/sys:/sys,${WORKDIR}/database.conf:/etc/rstudio/database.conf,${WORKDIR}/var/lib/rstudio-server:/var/lib/rstudio-server,${SINGULARITY_BIND}"
 fi
 
+# https://github.com/grst/rstudio-server-conda/pull/18
+if [ ${image_tag#RELEASE_3_} -ge 14 ]
+then
+  extra_options="--server-user $USER ${extra_options}"
+fi
+
 # Debian /usr/local/lib/R/etc/Renviron hard-codes R_LIBS_USER to /usr/local/lib/R/site-library :
 # https://github.com/rocker-org/rocker-versioned/issues/153
 # can override in /etc/R/Renviron.site
