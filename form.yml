@@ -61,6 +61,17 @@ attributes:
       *sbatch -A, --account=\<account\>*
 
       Leave blank if you do not have multiple Slurm accounts
+
+  custom_vanillaconf:
+    label: "Start rstudio with a new configuration"
+    widget: check_box
+    value: 1
+    help: |
+          **_Checking this box will start rstudio with a fresh configuration._** 
+          
+          This is useful if you need to run different instances at the same time with different configurations.<br> 
+          Leave the box unchecked if you want rstudio to start with the default configuration you have in your ~/.rstudio
+
 form:
   - modules
   - bc_queue
@@ -71,4 +82,5 @@ form:
   - bc_email_on_started
   - custom_email_address
   - custom_reservation
+  - custom_vanillaconf
   - bc_account

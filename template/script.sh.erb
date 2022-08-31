@@ -72,6 +72,12 @@ then
   extra_options="--server-user $USER ${extra_options}"
 fi
 
+# users can chose if starting from a fresh config or keep the default in HOME/.rstudio
+<%- if !context.custom_vanillaconf.to_i.zero? -%>
+mkdir -p ${WORKDIR}/rstudio $HOME/.local/share/rstudio
+export SINGULARITY_BIND="${WORKDIR}/rstudio:$HOME/.local/share/rstudio,${SINGULARITY_BIND}"
+<%- end -%>
+
 # Debian /usr/local/lib/R/etc/Renviron hard-codes R_LIBS_USER to /usr/local/lib/R/site-library :
 # https://github.com/rocker-org/rocker-versioned/issues/153
 # can override in /etc/R/Renviron.site
