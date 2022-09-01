@@ -41,6 +41,7 @@ attributes:
     label: "RStudio Server image"
     help: "This defines the version of R/Bioconductor you want to use."
     options:
+      - [ "Bioconductor 3.14 (R 4.1.3)", "/n/singularity_images/informatics/ifxrstudio/ifxrstudio:RELEASE_3_14.sif" ]
       - [ "Bioconductor 3.13 (R 4.1.0)", "/n/singularity_images/informatics/ifxrstudio/ifxrstudio:RELEASE_3_13.sif" ]
       - [ "Bioconductor 3.12 (R 4.0.3)", "/n/singularity_images/informatics/ifxrstudio/ifxrstudio:RELEASE_3_12.sif" ]
       - [ "Bioconductor 3.11 (R 4.0.0)", "/n/singularity_images/informatics/ifxrstudio/ifxrstudio:RELEASE_3_11.sif" ]
@@ -60,6 +61,17 @@ attributes:
       *sbatch -A, --account=\<account\>*
 
       Leave blank if you do not have multiple Slurm accounts
+
+  custom_vanillaconf:
+    label: "Start rstudio with a new configuration"
+    widget: check_box
+    value: 1
+    help: |
+          **_Checking this box will start rstudio with a fresh configuration._** 
+          
+          This is useful if you need to run different instances at the same time with different configurations.<br> 
+          Leave the box unchecked if you want rstudio to start with the default configuration you have in your ~/.rstudio
+
 form:
   - modules
   - bc_queue
@@ -70,4 +82,5 @@ form:
   - bc_email_on_started
   - custom_email_address
   - custom_reservation
+  - custom_vanillaconf
   - bc_account
