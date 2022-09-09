@@ -61,13 +61,9 @@ fi
 if [ ${image_tag#RELEASE_3_} -ge 14 ]
 then
   # allow python packages to be installed into the venv
-  if [ ! -d "${R_LIBS_USER}"/venv ]
-  then
-    SINGULARITY_BIND='' singularity exec --cleanenv "${container_image}" cp -Rp /opt/venv "${R_LIBS_USER}"/venv
-  fi
-  # disable the pip cache to optimize disk space
-  export SINGULARITYENV_PIP_NO_CACHE_DIR=off
-  export SINGULARITY_BIND="${SINGULARITY_BIND},${R_LIBS_USER}/venv:/opt/venv"
+  mkdir -p "${R_LIBS_USER}"/venv
+  PIP_TARGET=/opt/venv/reticulate/local/lib/python3.8/dist-packages
+  export SINGULARITY_BIND="${SINGULARITY_BIND},${R_LIBS_USER}/venv:${PIP_TARGET}"
   # https://github.com/grst/rstudio-server-conda/pull/18
   extra_options="--server-user $USER ${extra_options}"
 fi
@@ -99,6 +95,8 @@ cat > ${WORKDIR}/rsession.sh <<END
 set -o xtrace
 export OMP_NUM_THREADS=${SLURM_JOB_CPUS_PER_NODE}
 export MKL_THREADING_LAYER=GNU
+export PIP_NO_CACHE_DIR=off
+${PIP_TARGET:+export PIP_TARGET=${PIP_TARGET}}
 exec rsession "\${@}"
 END
 
