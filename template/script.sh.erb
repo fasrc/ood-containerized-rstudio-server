@@ -63,6 +63,7 @@ then
   # allow python packages to be installed into the venv
   mkdir -p "${R_LIBS_USER}"/venv
   PIP_TARGET=/opt/venv/reticulate/local/lib/python3.8/dist-packages
+  RETICULATE_PYTHON=/opt/venv/reticulate/bin/python
   export SINGULARITY_BIND="${SINGULARITY_BIND},${R_LIBS_USER}/venv:${PIP_TARGET}"
   # https://github.com/grst/rstudio-server-conda/pull/18
   extra_options="--server-user $USER ${extra_options}"
@@ -97,6 +98,7 @@ export OMP_NUM_THREADS=${SLURM_JOB_CPUS_PER_NODE}
 export MKL_THREADING_LAYER=GNU
 export PIP_NO_CACHE_DIR=off
 ${PIP_TARGET:+export PIP_TARGET=${PIP_TARGET}}
+${RETICULATE_PYTHON:+export RETICULATE_PYTHON=${RETICULATE_PYTHON}}
 exec rsession "\${@}"
 END
 
