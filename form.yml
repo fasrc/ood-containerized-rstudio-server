@@ -1,5 +1,5 @@
 ---
-title: "RStudio Server (Bioconductor + tidyverse)"
+title: "RStudio Server"
 cluster: "odyssey3"
 attributes:
   modules: null
