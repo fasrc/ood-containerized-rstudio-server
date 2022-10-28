@@ -38,14 +38,14 @@ attributes:
       *sbatch -c, --cpus-per-task=\<ncpus\>*
   r_version:
     widget: select
-    label: "RStudio Server image"
+    label: "R version"
     options:
-      - [ "Bioconductor 3.14 (R 4.1.3)", "/n/singularity_images/informatics/ifxrstudio/ifxrstudio:RELEASE_3_14.sif" ]
-      - [ "Bioconductor 3.13 (R 4.1.0)", "/n/singularity_images/informatics/ifxrstudio/ifxrstudio:RELEASE_3_13.sif" ]
-      - [ "Bioconductor 3.12 (R 4.0.3)", "/n/singularity_images/informatics/ifxrstudio/ifxrstudio:RELEASE_3_12.sif" ]
-      - [ "Bioconductor 3.11 (R 4.0.0)", "/n/singularity_images/informatics/ifxrstudio/ifxrstudio:RELEASE_3_11.sif" ]
-      - [ "Bioconductor 3.10 (R 3.6.2)", "/n/singularity_images/informatics/ifxrstudio/ifxrstudio:RELEASE_3_10.sif" ]
-      - [ "Bioconductor 3.9 (R 3.6.1)", "/n/singularity_images/informatics/ifxrstudio/ifxrstudio:RELEASE_3_9.sif" ]
+      - [ "R 4.1.3 (Bioconductor 3.14, RStudio 2022.02.0)", "/n/singularity_images/informatics/ifxrstudio/ifxrstudio:RELEASE_3_14.sif" ]
+      - [ "R 4.1.0 (Bioconductor 3.13, RStudio 1.4.1717)", "/n/singularity_images/informatics/ifxrstudio/ifxrstudio:RELEASE_3_13.sif" ]
+      - [ "R 4.0.3 (Bioconductor 3.12, Rstudio 1.3.1093)", "/n/singularity_images/informatics/ifxrstudio/ifxrstudio:RELEASE_3_12.sif" ]
+      - [ "R 4.0.0 (Bioconductor 3.11, Rstudio 1.3.1093)", "/n/singularity_images/informatics/ifxrstudio/ifxrstudio:RELEASE_3_11.sif" ]
+      - [ "R 3.6.2 (Bioconductor 3.10, Rstudio 1.2.5033)", "/n/singularity_images/informatics/ifxrstudio/ifxrstudio:RELEASE_3_10.sif" ]
+      - [ "R 3.6.1 (Bioconductor 3.9, RStudio 1.2.1578)", "/n/singularity_images/informatics/ifxrstudio/ifxrstudio:RELEASE_3_9.sif" ]
     help: |
       This defines the version of R/Bioconductor you want to use.
 
