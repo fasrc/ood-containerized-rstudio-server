@@ -58,12 +58,23 @@ END
   export SINGULARITY_BIND="/sys:/sys,${WORKDIR}/database.conf:/etc/rstudio/database.conf,${WORKDIR}/var/lib/rstudio-server:/var/lib/rstudio-server,${SINGULARITY_BIND}"
 fi
 
-if [ ${image_tag#RELEASE_3_} -ge 14 ]
+if [ ${image_tag#RELEASE_3_} -eq 14 ]
 then
   # allow python packages to be installed into the venv
-  mkdir -p "${R_LIBS_USER}"/venv
-  PIP_TARGET=/opt/venv/reticulate/local/lib/python3.8/dist-packages
-  export SINGULARITY_BIND="${SINGULARITY_BIND},${R_LIBS_USER}/venv:${PIP_TARGET}"
+  # FIXME: doesn't update PATH with site-packages/bin
+  if [ ! -d "${R_LIBS_USER}"/venv ]
+  then
+    SINGULARITY_BIND='' singularity exec --cleanenv "${container_image}" cp -Rp /opt/venv "${R_LIBS_USER}"/venv
+  fi
+  export SINGULARITY_BIND="${SINGULARITY_BIND},${R_LIBS_USER}/venv:/opt/venv"
+fi
+
+if [ ${image_tag#RELEASE_3_} -ge 14 ]
+then
+  # initially-empty directory that's in site.getsitepackages()
+  PIP_TARGET='/usr/lib/python3.8/dist-packages'
+  mkdir -p "${R_LIBS_USER}"/site-packages
+  export SINGULARITY_BIND="${SINGULARITY_BIND},${R_LIBS_USER}/site-packages:${PIP_TARGET}"
   # https://github.com/grst/rstudio-server-conda/pull/18
   extra_options="--server-user $USER ${extra_options}"
 fi
@@ -95,8 +106,11 @@ cat > ${WORKDIR}/rsession.sh <<END
 set -o xtrace
 export OMP_NUM_THREADS=${SLURM_JOB_CPUS_PER_NODE}
 export MKL_THREADING_LAYER=GNU
+# disable the pip cache to optimize disk space
 export PIP_NO_CACHE_DIR=off
-${PIP_TARGET:+export PIP_TARGET=${PIP_TARGET}}
+export PYTHONNOUSERSITE=1
+export RETICULATE_MINICONDA_ENABLED=FALSE
+${PIP_TARGET:+export PIP_TARGET=${PIP_TARGET} PATH=${PIP_TARGET}/bin:\${PATH}}
 exec /usr/lib/rstudio-server/bin/rsession "\${@}"
 END
 
