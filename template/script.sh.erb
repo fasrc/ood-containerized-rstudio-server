@@ -97,7 +97,7 @@ export OMP_NUM_THREADS=${SLURM_JOB_CPUS_PER_NODE}
 export MKL_THREADING_LAYER=GNU
 export PIP_NO_CACHE_DIR=off
 ${PIP_TARGET:+export PIP_TARGET=${PIP_TARGET}}
-exec rsession "\${@}"
+exec /usr/lib/rstudio-server/bin/rsession "\${@}"
 END
 
 chmod +x ${WORKDIR}/rsession.sh
