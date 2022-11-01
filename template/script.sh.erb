@@ -61,22 +61,26 @@ fi
 if [ ${image_tag#RELEASE_3_} -eq 14 ]
 then
   # allow python packages to be installed into the venv
-  # FIXME: doesn't update PATH with site-packages/bin
-  if [ ! -d "${R_LIBS_USER}"/venv ]
-  then
-    SINGULARITY_BIND='' singularity exec --cleanenv "${container_image}" cp -Rp /opt/venv "${R_LIBS_USER}"/venv
-  fi
-  export SINGULARITY_BIND="${SINGULARITY_BIND},${R_LIBS_USER}/venv:/opt/venv"
+  mkdir -p "${R_LIBS_USER}"/venv
+  # prepending ${PIP_TARGET}/bin to PATH in rsession.sh doesn't work;
+  # PATH is overritten in /etc/bash.bashrc
+  PIP_TARGET=/opt/venv/reticulate/local/lib/python3.8/dist-packages
+  RETICULATE_PYTHON=/opt/venv/reticulate/bin/python
+  export SINGULARITY_BIND="${SINGULARITY_BIND},${R_LIBS_USER}/venv:${PIP_TARGET}"
 fi
 
 if [ ${image_tag#RELEASE_3_} -ge 14 ]
 then
-  # initially-empty directory that's in site.getsitepackages()
-  PIP_TARGET='/usr/lib/python3.8/dist-packages'
-  mkdir -p "${R_LIBS_USER}"/site-packages
-  export SINGULARITY_BIND="${SINGULARITY_BIND},${R_LIBS_USER}/site-packages:${PIP_TARGET}"
   # https://github.com/grst/rstudio-server-conda/pull/18
   extra_options="--server-user $USER ${extra_options}"
+fi
+
+if [ ${image_tag#RELEASE_3_} -ge 15 ]
+then
+  # initially-empty directory that's in site.getsitepackages()
+  PIP_TARGET='/usr/lib/python3.8/dist-packages'
+  mkdir -p "${R_LIBS_USER}"/dist-packages
+  export SINGULARITY_BIND="${SINGULARITY_BIND},${R_LIBS_USER}/dist-packages:${PIP_TARGET}"
 fi
 
 # users can chose if starting from a fresh config or keep the default in HOME/.rstudio
@@ -111,6 +115,7 @@ export PIP_NO_CACHE_DIR=off
 export PYTHONNOUSERSITE=1
 export RETICULATE_MINICONDA_ENABLED=FALSE
 ${PIP_TARGET:+export PIP_TARGET=${PIP_TARGET} PATH=${PIP_TARGET}/bin:\${PATH}}
+${RETICULATE_PYTHON:+export RETICULATE_PYTHON=${RETICULATE_PYTHON}}
 exec /usr/lib/rstudio-server/bin/rsession "\${@}"
 END
 
