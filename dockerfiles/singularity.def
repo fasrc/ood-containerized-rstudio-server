@@ -8,6 +8,9 @@ From: rocker/geospatial:4.2.0
     export PATH=$PATH:/usr/local/texlive/bin/x86_64-linux
     set -o errexit
     wget https://raw.githubusercontent.com/Bioconductor/bioconductor_docker/RELEASE_3_15/bioc_scripts/install_bioc_sysdeps.sh
+    # use slightly-older apt install versions due to some overlap/conflict with
+    # apt-installed python packages from rocker/geospatial
+    sed -i'' 's/^pip3 install scikit-learn pandas pyyaml/apt install -y --no-install-recommends python3-sklearn python3-pandas python3-yaml/' install_bioc_sysdeps.sh
     sh install_bioc_sysdeps.sh
     rm install_bioc_sysdeps.sh
 

@@ -77,8 +77,9 @@ fi
 
 if [ ${image_tag#RELEASE_3_} -ge 15 ]
 then
-  # initially-empty directory that's in site.getsitepackages()
-  PIP_TARGET='/usr/lib/python3.8/dist-packages'
+  # use this odd, unused directory listed second (after cwd) in sys.path so
+  # user-installed python packages override any existing pip-installed packages
+  PIP_TARGET='/usr/lib/python38.zip'
   mkdir -p "${R_LIBS_USER}"/dist-packages
   export SINGULARITY_BIND="${SINGULARITY_BIND},${R_LIBS_USER}/dist-packages:${PIP_TARGET}"
 fi
