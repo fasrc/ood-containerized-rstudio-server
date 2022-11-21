@@ -1,6 +1,6 @@
 ---
 title: "RStudio Server"
-cluster: "odyssey3"
+cluster: "fasse"
 attributes:
   modules: null
   custom_time:
