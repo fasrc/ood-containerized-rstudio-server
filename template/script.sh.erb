@@ -58,15 +58,22 @@ END
   export SINGULARITY_BIND="/sys:/sys,${WORKDIR}/database.conf:/etc/rstudio/database.conf,${WORKDIR}/var/lib/rstudio-server:/var/lib/rstudio-server,${SINGULARITY_BIND}"
 fi
 
-if [ ${image_tag#RELEASE_3_} -ge 14 ]
+if [ ${image_tag#RELEASE_3_} -eq 14 ]
 then
   # allow python packages to be installed into the venv
   mkdir -p "${R_LIBS_USER}"/venv
-  PIP_TARGET=/opt/venv/reticulate/local/lib/python3.8/dist-packages
+  # prepending ${PYTHONUSERBASE}/bin to PATH in rsession.sh doesn't work;
+  # PATH is overritten in /etc/bash.bashrc
+  PYTHONUSERBASE=/opt/venv/reticulate/local/lib/python3.8/dist-packages
   RETICULATE_PYTHON=/opt/venv/reticulate/bin/python
-  export SINGULARITY_BIND="${SINGULARITY_BIND},${R_LIBS_USER}/venv:${PIP_TARGET}"
+  export SINGULARITY_BIND="${SINGULARITY_BIND},${R_LIBS_USER}/venv:${PYTHONUSERBASE}"
+fi
+
+if [ ${image_tag#RELEASE_3_} -ge 14 ]
+then
   # https://github.com/grst/rstudio-server-conda/pull/18
   extra_options="--server-user $USER ${extra_options}"
+  mkdir -p ${PYTHONUSERBASE=${R_LIBS_USER}/python-user-base}
 fi
 
 # users can chose if starting from a fresh config or keep the default in HOME/.rstudio
@@ -96,10 +103,15 @@ cat > ${WORKDIR}/rsession.sh <<END
 set -o xtrace
 export OMP_NUM_THREADS=${SLURM_JOB_CPUS_PER_NODE}
 export MKL_THREADING_LAYER=GNU
+# disable the pip cache to optimize disk space
 export PIP_NO_CACHE_DIR=off
-${PIP_TARGET:+export PIP_TARGET=${PIP_TARGET}}
+export RETICULATE_MINICONDA_ENABLED=FALSE
+${PYTHONUSERBASE:+export PYTHONUSERBASE=${PYTHONUSERBASE}}
+export PATH=\$(python -msite --user-base)/bin:\${PATH}
+export PYTHONPATH=\$(python -msite --user-site)
+export PIP_USER=1
 ${RETICULATE_PYTHON:+export RETICULATE_PYTHON=${RETICULATE_PYTHON}}
-exec rsession "\${@}"
+exec /usr/lib/rstudio-server/bin/rsession "\${@}"
 END
 
 chmod +x ${WORKDIR}/rsession.sh
