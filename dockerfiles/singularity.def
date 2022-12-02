@@ -1,35 +1,18 @@
 Bootstrap: docker
-From: bioconductor/bioconductor_docker:RELEASE_3_14
+From: rocker/geospatial:4.2.0
 
-# environment variables set by rocker/verse
 %environment
-    # CTAN_REPO pinned after subsequent r-ver release
-    # https://github.com/rocker-org/rocker-versioned2/issues/139
-    # https://github.com/rocker-org/rocker-versioned2/blob/master/dockerfiles/verse_4.1.3.Dockerfile#L8-L10
-    export CTAN_REPO=https://www.texlive.info/tlnet-archive/2022/04/21/tlnet
-    export PATH=$PATH:/usr/local/texlive/bin/x86_64-linux
-    export QUARTO_VERSION=latest
+    export PATH=${PATH}:/usr/local/texlive/bin/x86_64-linux
 
 %post
-    export CTAN_REPO=https://www.texlive.info/tlnet-archive/2022/04/21/tlnet
     export PATH=$PATH:/usr/local/texlive/bin/x86_64-linux
-    export QUARTO_VERSION=latest
-
-    # pinned after subsequent r-ver release
-    # https://github.com/rocker-org/rocker-versioned2/blob/master/dockerfiles/r-ver_4.1.3.Dockerfile#L17
-    echo 'options(repos = c(CRAN = "https://packagemanager.rstudio.com/cran/__linux__/focal/2022-04-21"), download.file.method = "libcurl")' >> $(R RHOME)/etc/Rprofile.site
-
-    ######## union rocker/tidyverse
-    /rocker_scripts/install_tidyverse.sh
-
-    ######## union rocker/verse
-    # https://github.com/rocker-org/rocker-versioned2/blob/master/dockerfiles/verse_4.1.3.Dockerfile
-    /rocker_scripts/install_verse.sh
-    /rocker_scripts/install_quarto.sh
-
-    ######## union rocker/geospatial
-    # https://github.com/rocker-org/rocker-versioned2/blob/master/dockerfiles/geospatial_4.1.3.Dockerfile
-    /rocker_scripts/install_geospatial.sh
+    set -o errexit
+    wget https://raw.githubusercontent.com/Bioconductor/bioconductor_docker/RELEASE_3_15/bioc_scripts/install_bioc_sysdeps.sh
+    # use slightly-older apt install versions due to some overlap/conflict with
+    # apt-installed python packages from rocker/geospatial
+    sed -i'' 's/^pip3 install scikit-learn pandas pyyaml/apt install -y --no-install-recommends python3-sklearn python3-pandas python3-yaml/' install_bioc_sysdeps.sh
+    sh install_bioc_sysdeps.sh
+    rm install_bioc_sysdeps.sh
 
     # reticulate
     /rocker_scripts/install_python.sh
@@ -38,7 +21,6 @@ From: bioconductor/bioconductor_docker:RELEASE_3_14
     # (hopefully in most cases) without installation of additional LaTeX packages,
     # as /usr/local/texlive is read-only in the Singularity image
     # v0.38 is broken w/ CTAN 2022/04/21 (https://github.com/rstudio/tinytex/pull/364); need v0.39
-    tlmgr update --self
     tlmgr install $(curl https://raw.githubusercontent.com/rstudio/tinytex/v0.39/tools/pkgs-custom.txt | tr '\n' ' ')
     tlmgr install $(curl https://raw.githubusercontent.com/rstudio/tinytex/v0.39/tools/pkgs-yihui.txt | tr '\n' ' ')
 
