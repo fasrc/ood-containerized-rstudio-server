@@ -76,6 +76,14 @@ then
   mkdir -p ${PYTHONUSERBASE=${R_LIBS_USER}/python-user-base}
 fi
 
+if [ ${image_tag#RELEASE_3_} -ge 16 ]
+then
+  mkdir -p ${R_LIBS_USER}/python-virtualenvs
+  # reticulate virtualenv installation; specific to container Python / software environment
+  # https://rstudio.github.io/reticulate/articles/python_packages.html#virtualenv-installation
+  export SINGULARITY_BIND="${SINGULARITY_BIND},${R_LIBS_USER}/python-virtualenvs:${HOME}/.virtualenvs"
+fi
+
 # users can chose if starting from a fresh config or keep the default in HOME/.rstudio
 <%- if !context.custom_vanillaconf.to_i.zero? -%>
 mkdir -p ${WORKDIR}/rstudio $HOME/.local/share/rstudio
