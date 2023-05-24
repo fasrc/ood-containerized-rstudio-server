@@ -36,11 +36,20 @@ attributes:
     widget: number_field
     help: |
       *sbatch -c, --cpus-per-task=\<ncpus\>*
+  custom_num_gpus:
+    label: Number of GPUs
+    value: 0
+    min:   0
+    step:  1
+    max:   8
+    widget: number_field
+    help: |
+      Number of GPUs to allocate. Available only on GPU enabled partitions. (--gres=gpu:N)
   r_version:
     widget: select
     label: "R version"
     options:
-      - [ "R 4.2.1 (Bioconductor 3.16, RStudio 2022.07.2)", "/n/singularity_images/informatics/ifxrstudio/ifxrstudio:RELEASE_3_16.sif" ]
+      - [ "R 4.2.3 (Bioconductor 3.16, RStudio 2023.03.0)", "/n/singularity_images/informatics/ifxrstudio/ifxrstudio:RELEASE_3_16.sif" ]
       - [ "R 4.2.0 (Bioconductor 3.15, RStudio 2022.02.3)", "/n/singularity_images/informatics/ifxrstudio/ifxrstudio:RELEASE_3_15.sif" ]
       - [ "R 4.1.3 (Bioconductor 3.14, RStudio 2022.02.0)", "/n/singularity_images/informatics/ifxrstudio/ifxrstudio:RELEASE_3_14.sif" ]
       - [ "R 4.1.0 (Bioconductor 3.13, RStudio 1.4.1717)", "/n/singularity_images/informatics/ifxrstudio/ifxrstudio:RELEASE_3_13.sif" ]
@@ -75,11 +84,13 @@ attributes:
           This is useful if you need to run different instances at the same time with different configurations.<br> 
           Leave the box unchecked if you want rstudio to start with the default configuration you have in your ~/.rstudio
 
+
 form:
   - modules
   - bc_queue
   - custom_memory_per_node
   - custom_num_cores
+  - custom_num_gpus
   - custom_time
   - r_version
   - bc_email_on_started
