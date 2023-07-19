@@ -33,6 +33,9 @@ mkdir -m 700 -p ${WORKDIR}/tmp ${WORKDIR}/run "${R_LIBS_USER}"
 
 export SINGULARITY_BIND="${WORKDIR}/tmp:/tmp,${WORKDIR}/run:/run,${WORKDIR}/rsession.sh:/etc/rstudio/rsession.sh,${WORKDIR}/Renviron.site:${R_HOME}/etc/Renviron.site"
 
+# only needed for fasse
+export SINGULARITY_BIND="/ncf:/ncf,${SINGULARITY_BIND}"
+
 readonly image_version=${image_tag#RELEASE_3_} 
 
 if [ ${image_version} -ge 12 ]
