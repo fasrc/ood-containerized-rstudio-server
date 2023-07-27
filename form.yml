@@ -20,7 +20,7 @@ attributes:
     widget: text_field
   custom_memory_per_node:
     label: Memory Allocation in GB
-    value: 4
+    value: 8
     min:   1
     step:  1
     max:   2000
@@ -29,7 +29,7 @@ attributes:
       *sbatch --mem=\<size\>G*
   custom_num_cores:
     label: "Number of CPUs to allocate"
-    value: 1
+    value: 2
     min:   1
     step:  1
     max:   64
