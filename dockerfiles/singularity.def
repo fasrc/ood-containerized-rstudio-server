@@ -14,5 +14,11 @@ From: ghcr.io/bioconductor/ml-verse:RELEASE_3_16
     tlmgr install $(curl https://raw.githubusercontent.com/rstudio/tinytex/v0.45/tools/pkgs-custom.txt | tr '\n' ' ')
     tlmgr install $(curl https://raw.githubusercontent.com/rstudio/tinytex/v0.45/tools/pkgs-yihui.txt | tr '\n' ' ') || true
 
+    # install arial font
+    apt-get update
+    echo ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true | debconf-set-selections
+    apt-get install -y ttf-mscorefonts-installer
+    fc-cache -f
+
 %labels
     Author nweeks@g.harvard.edu
