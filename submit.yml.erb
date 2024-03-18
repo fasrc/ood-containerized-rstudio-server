@@ -12,4 +12,8 @@ script:
     - "--gres=gpu:<%= custom_num_gpus.to_i %>"
     <%- end -%>
     - "--signal=USR2"
-
+   <%- unless extra_slurm.blank? -%>
+   <%- extra_slurm.split.each do |slurm_option| %>
+    - "<%= slurm_option.to_s %>"
+   <%- end %>
+   <%- end -%>

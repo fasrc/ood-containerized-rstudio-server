@@ -32,7 +32,6 @@ attributes:
     value: 2
     min:   1
     step:  1
-    max:   64
     widget: number_field
     help: |
       *sbatch -c, --cpus-per-task=\<ncpus\>*
@@ -84,6 +83,14 @@ attributes:
           This is useful if you need to run different instances at the same time with different configurations.<br> 
           Leave the box unchecked if you want rstudio to start with the default configuration you have in your ~/.rstudio
 
+  extra_slurm:
+    label: Additional Slurm options
+    widget: text_field
+    help: |
+      additional slurm options (**long format option only**)<br>
+      Example :  --constraint=intel --exclusive
+
+      Please make sure the options you select are compatible with other fields in the form.<br>Also, please make sure you use **long format option only**<br>(e.g. --nodelist=holy7c24502 instead of -w holy7c24502)
 
 form:
   - modules
@@ -98,3 +105,4 @@ form:
   - custom_reservation
   - custom_vanillaconf
   - bc_account
+  - extra_slurm
