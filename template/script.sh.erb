@@ -116,14 +116,21 @@ then
   export PATH=\$(python -msite --user-base)/bin:\${PATH}
   export PYTHONPATH="${PYTHONUSERBASE}"
 fi
+# pdflatex & tlmgr
+export PATH=/usr/local/texlive/bin/x86_64-linux:${PATH}
 ${RETICULATE_PYTHON:+export RETICULATE_PYTHON=${RETICULATE_PYTHON}}
 exec /usr/lib/rstudio-server/bin/rsession "\${@}"
 END
 
 chmod +x ${WORKDIR}/rsession.sh
 
-#echo 'log-stderr=1' > ${WORKDIR}/rsession.conf
-# --bind "${WORKDIR}/rsession.conf:/etc/rstudio/rsession.conf" \
+# enable GitHub Copilot for RStudio Server >= 2023.09.0
+# https://docs.posit.co/ide/user/ide/guide/tools/copilot.html
+if [ ${image_version} -ge 18 ]
+then
+  echo 'copilot-enabled=1' > ${WORKDIR}/rsession.conf
+  export SINGULARITY_BIND="${WORKDIR}/rsession.conf:/etc/rstudio/rsession.conf,${SINGULARITY_BIND}"
+fi
 
 # bioconductor/bioconductor_docker:RELEASE_3_10 sets USER in Dockerfile:
 # https://github.com/Bioconductor/bioconductor_docker/blob/RELEASE_3_10/Dockerfile#L154
