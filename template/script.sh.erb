@@ -73,8 +73,13 @@ then
 fi
 
 case ${image_version} in
-  14|15) mkdir -p ${PYTHONUSERBASE=${R_LIBS_USER}/python-user-base} ;;
+  14|15|18) mkdir -p ${PYTHONUSERBASE=${R_LIBS_USER}/python-user-base} ;;
 esac
+
+if [ ${image_version} -ge 18 ]
+then
+  export PATH=${PYTHONUSERBASE}/bin:${PATH}
+fi
 
 <%- if !context.custom_num_gpus.to_i.zero? -%>
 export SINGULARITY_NV=1
