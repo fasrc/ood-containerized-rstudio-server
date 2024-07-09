@@ -128,7 +128,9 @@ Tests are separated into two categories:
 
 For TensoFlow, ensure that you test on a GPU node.
 
-### Default virtualenv `r-reticulate`
+### virtualenv installation
+
+#### Default environment`r-reticulate`
 
 The instructions below were adapted from [reticulate docs](https://rstudio.github.io/reticulate/articles/python_packages.html).
 
@@ -160,7 +162,7 @@ The instructions below were adapted from [reticulate docs](https://rstudio.githu
    > pd <- import("pandas")
    ```
 
-### Create a virtualenv and install TensorFlow
+#### Create a`TF` virtualenv and install TensorFlow
 
 Resources:
 - https://tensorflow.rstudio.com/install/
@@ -252,4 +254,38 @@ tf.Tensor(
 tf.Tensor(
 [[22. 28.]
  [49. 64.]], shape=(2, 2), dtype=float16)
+```
+
+### Miniconda installation
+
+```R
+
+# install miniconda
+> library(reticulate)
+> install_miniconda()
+> conda_create("r-conda")
++ /n/home_rc/paulasan/.local/share/r-miniconda/bin/conda create --yes --name r-conda 'python=3.10' --quiet -c conda-forge
+
+# Restart R (Session -> Restart R)
+
+> library(reticulate)
+> use_condaenv("r-conda")
+> conda_install("r-conda", "scipy")
++ /n/home_rc/paulasan/.local/share/r-miniconda/bin/conda install --yes --name r-conda -c conda-forge scipy
+
+# Restart R (Session -> Restart R)
+
+> library(reticulate)
+> use_condaenv("r-conda")
+> scipy <- import("scipy")
+> py_config()
+python:         /n/home_rc/paulasan/.local/share/r-miniconda/envs/r-conda/bin/python
+libpython:      /n/home_rc/paulasan/.local/share/r-miniconda/envs/r-conda/lib/libpython3.10.so
+pythonhome:     /n/home_rc/paulasan/.local/share/r-miniconda/envs/r-conda:/n/home_rc/paulasan/.local/share/r-miniconda/envs/r-conda
+version:        3.10.14 | packaged by conda-forge | (main, Mar 20 2024, 12:45:18) [GCC 12.3.0]
+numpy:          /n/home_rc/paulasan/R/ifxrstudio/RELEASE_3_18/python-user-base/lib/python3.10/site-packages/numpy
+numpy_version:  1.26.4
+scipy:          /n/home_rc/paulasan/.local/share/r-miniconda/envs/r-conda/lib/python3.10/site-packages/scipy
+
+NOTE: Python version was forced by use_python() function
 ```
