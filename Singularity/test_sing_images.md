@@ -1,13 +1,16 @@
 # Test Singularity Images
 
-This document contains tests used to verify that the Singularity image has the
-appropriate settings.
+This document contains tests that should be performed on a new Singularity image
+before it is deployed on Open OnDemand.
+
+The tests were first developed for release 3.15, when Nathan Weeks added
+Python-R integration and have evolved for newest releases.
 
 Tests are separated into two categories:
 
 1. Python packages via `pip`: these installs are typically done from the RStudio
    Server terminal.
-2. Python packages via `reticulate` R library: these installs are typically done
+2. Python packages via R library `reticulate`: these installs are typically done
    from RStudio Server R console/shell.
 
 ## Python packages via `pip`
@@ -96,7 +99,6 @@ Tests are separated into two categories:
    (1, 6)
    >>>
    ```
-
   
 5. Update existing package
 
@@ -123,3 +125,131 @@ Tests are separated into two categories:
    ```
 
 ## Reticulate 
+
+For TensoFlow, ensure that you test on a GPU node.
+
+### Default virtualenv `r-reticulate`
+
+The instructions below were adapted from [reticulate docs](https://rstudio.github.io/reticulate/articles/python_packages.html).
+
+1. Install package in the default virtual environment `r-reticulate`:
+
+   ```R
+   > library(reticulate)
+   > py_install("pandas")
+   Using Python: /usr/bin/python3.10
+   Creating virtual environment '~/.virtualenvs/r-reticulate' ...
+   > use_virtualenv("r-reticulate")
+   > virtualenv_install("r-reticulate", "scipy")
+   ```
+
+   It is important to restart R after installing a Python package otherwise you will get an error:
+
+   ```R
+   > scipy <- import("scipy")
+   Error in py_module_import(module, convert = convert) :
+   ModuleNotFoundError: No module named 'scipy'
+   ```
+
+   Restart R (Session -> Restart R). Then
+
+   ```R
+   > library(reticulate)
+   > use_virtualenv("r-reticulate")
+   > scipy <- import("scipy")
+   > pd <- import("pandas")
+   ```
+
+### Create a virtualenv and install TensorFlow
+
+Resources:
+- https://tensorflow.rstudio.com/install/
+- https://tensorflow.rstudio.com/guides/tensorflow/basics
+- https://tensorflow.rstudio.com/guides/tensorflow/tensor#basics
+
+Install tenforflow R package, create `TF` reticulate environment, and install python packages within the `TF` environment:
+
+```R
+# install R package tensorflow
+> install.packages("tensorflow")
+
+# load packages and create TF environment
+> library(tensorflow)
+> library(reticulate)
+> virtualenv_create("TF")
+
+# restart R (Session -> Restart R)
+
+# load packages and install tensorflow in TF environment
+> library(reticulate)
+> library(tensorflow)
+> install_tensorflow(envname="TF", version = "2.14")
+
+# restart R (Session -> Restart R)
+
+# load packages, activate environment, and test GPU
+> library(reticulate)
+> use_virtualenv("TF")
+> library(tensorflow)
+> tf$config$get_visible_devices("GPU")
+2024-07-01 18:30:47.994659: I tensorflow/core/util/port.cc:111] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.
+2024-07-01 18:30:51.168251: E tensorflow/compiler/xla/stream_executor/cuda/cuda_dnn.cc:9342] Unable to register cuDNN factory: Attempting to register factory for plugin cuDNN when one has already been registered
+2024-07-01 18:30:51.168293: E tensorflow/compiler/xla/stream_executor/cuda/cuda_fft.cc:609] Unable to register cuFFT factory: Attempting to register factory for plugin cuFFT when one has already been registered
+2024-07-01 18:30:51.185166: E tensorflow/compiler/xla/stream_executor/cuda/cuda_blas.cc:1518] Unable to register cuBLAS factory: Attempting to register factory for plugin cuBLAS when one has already been registered
+2024-07-01 18:30:52.702117: I tensorflow/core/platform/cpu_feature_guard.cc:182] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
+To enable the following instructions: AVX2 AVX512F AVX512_VNNI FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2024-07-01 18:31:03.751769: W tensorflow/compiler/tf2tensorrt/utils/py_utils.cc:38] TF-TRT Warning: Could not find TensorRT
+[[1]]
+PhysicalDevice(name='/physical_device:GPU:0', device_type='GPU')
+```
+
+Using TensorFlow from R
+
+```R
+> library(reticulate)
+> use_virtualenv("TF")
+> library(tensorflow)
+> tf$constant("Hello Tensorflow!")
+2024-07-09 17:05:54.925065: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1886] Created device /job:localhost/replica:0/task:0/device:GPU:0 with 79197 MB memory:  -> device: 0, name: NVIDIA A100-SXM4-80GB, pci bus id: 0000:4b:00.0, compute capability: 8.0
+tf.Tensor(b'Hello Tensorflow!', shape=(), dtype=string)
+```
+
+Run script `/n/holylabs/LABS/rc_admin/Everyone/tensorflow_test.R`:
+
+```bash
+paulasan@holygpu8a22103:~$ cat /n/holylabs/LABS/rc_admin/Everyone/tensorflow_test.R
+if (length(tf$config$list_physical_devices('GPU')))
+  message("TensorFlow **IS** using the GPU") else
+  message("TensorFlow **IS NOT** using the GPU")
+a <- as_tensor(rbind(c(1.0, 2.0, 3.0), c(4.0, 5.0, 6.0)), dtype=tf$float16)
+b <- as_tensor(rbind(c(1.0, 2.0), c(3.0, 4.0), c(5.0, 6.0)), dtype=tf$float16)
+print(a)
+print(b)
+c <- tf$matmul(a, b)
+print(c)
+```
+
+Output on R console:
+
+```R
+> if (length(tf$config$list_physical_devices('GPU')))
++   message("TensorFlow **IS** using the GPU") else
++   message("TensorFlow **IS NOT** using the GPU")
+TensorFlow **IS** using the GPU
+> a <- as_tensor(rbind(c(1.0, 2.0, 3.0), c(4.0, 5.0, 6.0)), dtype=tf$float16)
+> b <- as_tensor(rbind(c(1.0, 2.0), c(3.0, 4.0), c(5.0, 6.0)), dtype=tf$float16)
+> print(a)
+tf.Tensor(
+[[1. 2. 3.]
+ [4. 5. 6.]], shape=(2, 3), dtype=float16)
+> print(b)
+tf.Tensor(
+[[1. 2.]
+ [3. 4.]
+ [5. 6.]], shape=(3, 2), dtype=float16)
+> c <- tf$matmul(a, b)
+> print(c)
+tf.Tensor(
+[[22. 28.]
+ [49. 64.]], shape=(2, 2), dtype=float16)
+```
