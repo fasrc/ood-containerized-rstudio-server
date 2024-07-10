@@ -129,6 +129,7 @@ END
 
 chmod +x ${WORKDIR}/rsession.sh
 
+# only on Cannon due to DSL1 only for Github Pilot
 # enable GitHub Copilot for RStudio Server >= 2023.09.0
 # https://docs.posit.co/ide/user/ide/guide/tools/copilot.html
 if [ ${image_version} -ge 18 ]
