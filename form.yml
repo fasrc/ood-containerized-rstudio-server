@@ -92,8 +92,6 @@ attributes:
 
       Please make sure the options you select are compatible with other fields in the form.<br>Also, please make sure you use **long format option only**<br>(e.g. --nodelist=holy7c24502 instead of -w holy7c24502)
 
-
-
 form:
   - modules
   - bc_queue
