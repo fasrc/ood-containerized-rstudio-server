@@ -83,6 +83,7 @@ attributes:
           
           This is useful if you need to run different instances at the same time with different configurations.<br> 
           Leave the box unchecked if you want rstudio to start with the default configuration you have in your ~/.rstudio
+
   extra_slurm:
     label: Additional Slurm options
     widget: text_field
