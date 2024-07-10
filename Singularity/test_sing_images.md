@@ -259,7 +259,6 @@ tf.Tensor(
 ### Miniconda installation
 
 ```R
-
 # install miniconda
 > library(reticulate)
 > install_miniconda()
@@ -268,6 +267,7 @@ tf.Tensor(
 
 # Restart R (Session -> Restart R)
 
+# activate environment and install package scipy within environment
 > library(reticulate)
 > use_condaenv("r-conda")
 > conda_install("r-conda", "scipy")
@@ -275,6 +275,7 @@ tf.Tensor(
 
 # Restart R (Session -> Restart R)
 
+# activate environment and load python package
 > library(reticulate)
 > use_condaenv("r-conda")
 > scipy <- import("scipy")
