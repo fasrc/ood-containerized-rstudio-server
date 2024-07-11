@@ -9,6 +9,10 @@ ml-verse](https://github.com/Bioconductor/bioconductor_docker/pkgs/container/ml-
 
 `R_LIBS_USER` is set to `$HOME/R/ifxrstudio:${TAG}`, e.g. `RELEASE_3_13`
 
+## Tests
+
+Before deploying a new release, perform the tests in [Singularity/test_sing_images](Singularity/test_sing_images.md).
+
 ## R packages pinned version
 
 R packages in RStudio Server are tied to a specific CRAN version.
