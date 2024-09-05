@@ -79,6 +79,14 @@ esac
 if [ ${image_version} -ge 18 ]
 then
   export PATH=${PYTHONUSERBASE}/bin:${PATH}
+  # work around issue affecting Seurat (at least) (RT177061)
+  if [ -e /sys/devices/cpu/caps/pmu_name ]
+  then
+    read pmu_name < /sys/devices/cpu/caps/pmu_name
+    case ${pmu_name} in
+      sapphire_rapids) OPENBLAS_CORETYPE=SKYLAKEX ;;
+    esac
+  fi
 fi
 
 <%- if !context.custom_num_gpus.to_i.zero? -%>
@@ -123,6 +131,7 @@ then
 fi
 # pdflatex & tlmgr
 export PATH=/usr/local/texlive/bin/x86_64-linux:${PATH}
+${OPENBLAS_CORETYPE:+export OPENBLAS_CORETYPE=${OPENBLAS_CORETYPE}}
 ${RETICULATE_PYTHON:+export RETICULATE_PYTHON=${RETICULATE_PYTHON}}
 exec /usr/lib/rstudio-server/bin/rsession "\${@}"
 END
