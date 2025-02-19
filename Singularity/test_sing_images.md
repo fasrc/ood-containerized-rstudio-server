@@ -13,7 +13,16 @@ Tests are separated into two categories:
 2. Python packages via R library `reticulate`: these installs are typically done
    from RStudio Server R console/shell.
 
+Directories to delete to "clean" your Python/R environment:
+
+- `~/.local/`
+- ` ~/R/ifxrstudio/RELEASE_<version>/`
+- `~/.virtualenvs/`
+
+
 ## Python packages via `pip`
+
+0. Start RStudio Server with "Start rstudio with a new configuration" checked
 
 1. In RStudio Server terminal, install `numpy` and see `pip list`
 
@@ -66,7 +75,7 @@ Tests are separated into two categories:
 
 4. Run an R script from R console
 
-   Open the file `/n/holylabs/LABS/rc_admin/Everyone/numpy_test.Rmd`
+   Open the file `/n/holylabs/LABS/rc_admin/Everyone/numpy_test.Rmd` on Cannon or  `/n/netscratch/rc_admin/Everyone/numpy_test.Rmd` on FASSE.
 
    ````bash
    paulasan@holygpu8a22103:~$ cat /n/holylabs/LABS/rc_admin/Everyone/numpy_test.Rmd

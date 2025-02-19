@@ -73,14 +73,16 @@ then
 fi
 
 case ${image_version} in
-  14|15|18) mkdir -p ${PYTHONUSERBASE=${R_LIBS_USER}/python-user-base} ;;
+  14|15|18|19) mkdir -p ${PYTHONUSERBASE=${R_LIBS_USER}/python-user-base} ;;
 esac
 
 if [ ${image_version} -ge 18 ]
 then
   export PATH=${PYTHONUSERBASE}/bin:${PATH}
-  # work around issue affecting Seurat (at least) (RT177061)
-  if [ -e /sys/devices/cpu/caps/pmu_name ]
+  # work around Ubuntu 22.04 / OpenBLAS 0.3.20 issue affecting Seurat (at least) (RT177061)
+  # https://github.com/rocker-org/rocker-versioned2/issues/836
+  # Does not impact docker.io/bioconductor/ml-verse:3.20 (Ubuntu 24.04 / OpenBLAS 0.3.26)
+  if [ ${image_version} -le 19 ] && [ -e /sys/devices/cpu/caps/pmu_name ]
   then
     read pmu_name < /sys/devices/cpu/caps/pmu_name
     case ${pmu_name} in
@@ -88,10 +90,6 @@ then
     esac
   fi
 fi
-
-<%- if !context.custom_num_gpus.to_i.zero? -%>
-export SINGULARITY_NV=1
-<%- end -%>
 
 # users can chose if starting from a fresh config or keep the default in HOME/.rstudio
 <%- if !context.custom_vanillaconf.to_i.zero? -%>
@@ -158,11 +156,14 @@ fi
 # set oom_score_adj to 1000 in job script (parent) so it app is terminated in
 # the event the rsession (child) OOMs to avoid the appearance of the app
 # continuing to function in OOD/Slurm with a 502 Proxy error on reconnect
+#
+# we set the --nv parameter for a case when user request --gres=gpu:N via
+# slurm additional options. --nv does not affect CPU only jobs
 echo 1000 > /proc/self/oom_score_adj
 ( 
   echo 0 > /proc/self/oom_score_adj
 
-  singularity exec --cleanenv \
+  singularity exec --nv --cleanenv \
    "${container_image}" \
    sh -c "USER=${USER} rserver \
    --www-port ${port} \
