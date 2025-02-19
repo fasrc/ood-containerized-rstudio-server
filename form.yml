@@ -35,19 +35,11 @@ attributes:
     widget: number_field
     help: |
       *sbatch -c, --cpus-per-task=\<ncpus\>*
-  custom_num_gpus:
-    label: Number of GPUs
-    value: 0
-    min:   0
-    step:  1
-    max:   8
-    widget: number_field
-    help: |
-      Number of GPUs to allocate. Available only on GPU enabled partitions. (--gres=gpu:N)
   r_version:
     widget: select
     label: "R version"
     options:
+      - [ "R 4.4.1 (Bioconductor 3.19, RStudio 2024.04.2)", "/n/singularity_images/informatics/ifxrstudio/ifxrstudio:RELEASE_3_19.sif" ]
       - [ "R 4.3.3 (Bioconductor 3.18, RStudio 2023.09.1)", "/n/singularity_images/informatics/ifxrstudio/ifxrstudio:RELEASE_3_18.sif" ]
       - [ "R 4.2.3 (Bioconductor 3.16, RStudio 2023.03.0)", "/n/singularity_images/informatics/ifxrstudio/ifxrstudio:RELEASE_3_16.sif" ]
       - [ "R 4.2.0 (Bioconductor 3.15, RStudio 2022.02.3)", "/n/singularity_images/informatics/ifxrstudio/ifxrstudio:RELEASE_3_15.sif" ]
@@ -98,7 +90,6 @@ form:
   - bc_queue
   - custom_memory_per_node
   - custom_num_cores
-  - custom_num_gpus
   - custom_time
   - r_version
   - bc_email_on_started
