@@ -1,7 +1,7 @@
 bootstrap: docker
 from: docker.io/bioconductor/ml-verse:3.19-R-4.4.1
 
-# this bioconductor/ml-verse image was built from a rocker :latest image;
+# bioconductor/ml-verse:3.19-R-4.4.1 image was built from a rocker :latest image;
 # pin CRAN to specific dates corresponding to rocker image:
 # https://github.com/rocker-org/rocker-versioned2/wiki/Versions
 %post
