@@ -1,6 +1,14 @@
 bootstrap: docker
 from: docker.io/bioconductor/ml-verse:3.19-R-4.4.1
 
+# this bioconductor/ml-verse image was built from a rocker :latest image;
+# pin CRAN to specific dates corresponding to rocker image:
+# https://github.com/rocker-org/rocker-versioned2/wiki/Versions
+%post
+    echo 'options(repos = c(CRAN = "https://p3m.dev/cran/__linux__/jammy/2024-10-30"), download.file.method = "libcurl")' >> $(R RHOME)/etc/Rprofile.site
+
+
+# conditionally set OPENBLAS_CORETYPE to
 # work around https://github.com/rocker-org/rocker-versioned2/issues/836
 # Not needed for docker.io/bioconductor/ml-verse:3.20-R-4.4.2
 # Set here for command-line use (e.g. batch job); set in template/script.sh.erb for RStudio Server
