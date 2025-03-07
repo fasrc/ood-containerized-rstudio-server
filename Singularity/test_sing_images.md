@@ -19,6 +19,31 @@ Directories to delete to "clean" your Python/R environment:
 - ` ~/R/ifxrstudio/RELEASE_<version>/`
 - `~/.virtualenvs/`
 
+## R Packages
+
+1. Pinned date
+
+   Ensure that the R packages are comming from a pinned date and **not** latest.
+   For example:
+
+   ```
+   > install.packages("data.table")
+   Installing package into ‘/n/home_rc/paulasan/R/ifxrstudio/RELEASE_3_19’
+   (as ‘lib’ is unspecified)
+   trying URL 'https://p3m.dev/cran/__linux__/jammy/2024-10-30/src/contrib/data.table_1.16.2.tar.gz'
+   Content type 'binary/octet-stream' length 2451551 bytes (2.3 MB)
+   ==================================================
+   downloaded 2.3 MB
+
+   * installing *binary* package ‘data.table’ ...
+   * DONE (data.table)
+
+   The downloaded source packages are in
+        ‘/tmp/RtmpAEk4LG/downloaded_packages’
+   ```
+
+   Above, the package is downloaded from `https://p3m.dev/cran/__linux__/jammy/2024-10-30/src/contrib/data.table_1.16.2.tar.gz`.
+   Note the date `2024-10-30` and not `latest`.
 
 ## Python packages via `pip`
 
