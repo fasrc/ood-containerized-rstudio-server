@@ -7,4 +7,5 @@ from: docker.io/bioconductor/ml-verse:RELEASE_3_20-R-4.4.2
 %post
     apt update
     apt install -y libsecret-1-dev
-    echo 'options(repos = c(CRAN = "https://p3m.dev/cran/__linux__/ noble/2025-02-27"), download.file.method = "libcurl")' >> $(R RHOME)/etc/Rprofile.site
+    echo 'options(repos = c(CRAN = "https://p3m.dev/cran/__linux__/noble/2025-02-27"), download.file.method = "libcurl")' >> $(R RHOME)/etc/Rprofile.site
+    echo 'options(reticulate.miniconda.url = "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-x86_64.sh")' >> $(R RHOME)/etc/Rprofile.site
