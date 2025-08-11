@@ -120,13 +120,19 @@ export OMP_NUM_THREADS=${SLURM_JOB_CPUS_PER_NODE}
 export MKL_THREADING_LAYER=GNU
 # disable the pip cache to optimize disk space
 export PIP_NO_CACHE_DIR=off
+
+# this is no-op for Bioconductor >= 3.18
+# it would also impact release 3.17 as well, but we skipped that one
+# for >=3.18, we added the conda-forge repo in the Singularity image
 export RETICULATE_MINICONDA_ENABLED=FALSE
+
 if [ "${PYTHONUSERBASE:-}" ] # backwards compatibility w/ RELEASE_3_1[45]
 then
   export PYTHONUSERBASE="${PYTHONUSERBASE}"
   export PATH=\$(python -msite --user-base)/bin:\${PATH}
   export PYTHONPATH="${PYTHONUSERBASE}"
 fi
+
 # pdflatex & tlmgr
 export PATH=/usr/local/texlive/bin/x86_64-linux:${PATH}
 ${OPENBLAS_CORETYPE:+export OPENBLAS_CORETYPE=${OPENBLAS_CORETYPE}}
