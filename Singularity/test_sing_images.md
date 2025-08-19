@@ -45,7 +45,7 @@ Directories to delete to "clean" your Python/R environment:
    Above, the package is downloaded from `https://p3m.dev/cran/__linux__/jammy/2024-10-30/src/contrib/data.table_1.16.2.tar.gz`.
    Note the date `2024-10-30` and not `latest`.
 
-## Python packages via `pip`
+## Python packages via `pip` (RELEASE <= 3.19)
 
 0. Start RStudio Server with "Start rstudio with a new configuration" checked
 
@@ -160,8 +160,6 @@ Directories to delete to "clean" your Python/R environment:
 
 ## Reticulate 
 
-For TensoFlow, ensure that you test on a GPU node.
-
 ### virtualenv installation
 
 #### Default environment`r-reticulate`
@@ -196,7 +194,9 @@ The instructions below were adapted from [reticulate docs](https://rstudio.githu
    > pd <- import("pandas")
    ```
 
-#### Create a`TF` virtualenv and install TensorFlow
+#### Create a`TF` virtualenv and install TensorFlow (RELEASE <= 3.19)
+
+For TensorFlow, ensure that you test on a GPU node.
 
 Resources:
 - https://tensorflow.rstudio.com/install/
