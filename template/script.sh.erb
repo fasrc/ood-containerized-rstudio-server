@@ -18,20 +18,20 @@ echo "Starting up rserver..."
 # https://github.com/rstudio/rstudio/blob/master/src/cpp/server/ServerSessionManager.cpp#L111
 export SINGULARITYENV_RSTUDIO_SESSION_TIMEOUT=0
 
-R_HOME=$(singularity exec --containall ${container_image} R RHOME)
-
 # Need a unique /tmp for this job for /tmp/rstudio-rsession & /tmp/rstudio-server
 # Need writable /run/rstudio-server :
 #   https://discourse.osc.edu/t/unable-to-launch-fully-containerized-rstudio/948
-WORKDIR=/scratch/${USER}/${SLURM_JOB_ID}
+# Create workdir at /scratch/rstudio-server.XXXXXX (`mktemp -d` will fill in XXXXXX with random alphanumeric characters)
+WORKDIR=$(mktemp -d /scratch/rstudio-server.XXXXXX)
 
 # use a different directory for each image to be safe...
 readonly image_tag=$(basename "${container_image##*:}" .sif)
 R_LIBS_USER=${HOME}/R/ifxrstudio/${image_tag}
 
-mkdir -m 700 -p ${WORKDIR}/tmp ${WORKDIR}/run "${R_LIBS_USER}"
+mkdir -p "${R_LIBS_USER}"
 
-export SINGULARITY_BIND="${WORKDIR}/tmp:/tmp,${WORKDIR}/run:/run,${WORKDIR}/rsession.sh:/etc/rstudio/rsession.sh,${WORKDIR}/Renviron.site:${R_HOME}/etc/Renviron.site"
+# add bind paths from /etc/singularity/singularity.conf (except /scratch) and rsession.sh
+export SINGULARITY_BIND="/n:/n,/net:/net,/cvmfs:/cvmfs,${WORKDIR}/rsession.sh:/etc/rstudio/rsession.sh"
 
 # only needed for fasse
 export SINGULARITY_BIND="/ncf:/ncf,${SINGULARITY_BIND}"
@@ -51,11 +51,7 @@ then
 provider=sqlite
 directory=/var/lib/rstudio-server
 END
-  # explicitly mount /sys to enable RStudio Server 1.4.1717 "Memory
-  # Usage Report" & address startup warning:
-  #     ERROR system error 2 (No # such file or directory)
-  #     [path: /sys/fs/cgroup/memory/memory.limit_in_bytes]...
-  export SINGULARITY_BIND="/sys:/sys,${WORKDIR}/database.conf:/etc/rstudio/database.conf,${WORKDIR}/var/lib/rstudio-server:/var/lib/rstudio-server,${SINGULARITY_BIND}"
+  export SINGULARITY_BIND="${WORKDIR}/database.conf:/etc/rstudio/database.conf,${WORKDIR}/var/lib/rstudio-server:/var/lib/rstudio-server,${SINGULARITY_BIND}"
 fi
 
 if [ ${image_version} -eq 14 ]
@@ -79,13 +75,13 @@ case ${image_version} in
   14|15|18|19) mkdir -p ${PYTHONUSERBASE=${R_LIBS_USER}/python-user-base} ;;
 esac
 
-if [ ${image_version} -ge 18 ]
+if [ ${image_version} -eq 18 ] || [ ${image_version} -le 19 ]
 then
   export PATH=${PYTHONUSERBASE}/bin:${PATH}
   # work around Ubuntu 22.04 / OpenBLAS 0.3.20 issue affecting Seurat (at least) (RT177061)
   # https://github.com/rocker-org/rocker-versioned2/issues/836
   # Does not impact docker.io/bioconductor/ml-verse:3.20 (Ubuntu 24.04 / OpenBLAS 0.3.26)
-  if [ ${image_version} -le 19 ] && [ -e /sys/devices/cpu/caps/pmu_name ]
+  if  [ -e /sys/devices/cpu/caps/pmu_name ]
   then
     read pmu_name < /sys/devices/cpu/caps/pmu_name
     case ${pmu_name} in
@@ -100,13 +96,6 @@ mkdir -p ${WORKDIR}/rstudio $HOME/.local/share/rstudio
 export SINGULARITY_BIND="${WORKDIR}/rstudio:$HOME/.local/share/rstudio,${SINGULARITY_BIND}"
 <%- end -%>
 
-# Debian /usr/local/lib/R/etc/Renviron hard-codes R_LIBS_USER to /usr/local/lib/R/site-library :
-# https://github.com/rocker-org/rocker-versioned/issues/153
-# can override in /etc/R/Renviron.site
-cat >${WORKDIR}/Renviron.site <<END
-R_LIBS_USER=$R_LIBS_USER
-END
-
 # rsession needs to start with OMP_NUM_THREADS set to prevent OpenBLAS
 # (and any other OpenMP-enhanced libraries used by R) from spawning too many
 # threads. Renviron.site appears to be processed too late to prevent this (any
@@ -119,6 +108,7 @@ END
 cat > ${WORKDIR}/rsession.sh <<END
 #!/bin/sh
 set -o xtrace
+export R_LIBS_USER='${R_LIBS_USER}'
 export OMP_NUM_THREADS=${SLURM_JOB_CPUS_PER_NODE}
 export MKL_THREADING_LAYER=GNU
 # disable the pip cache to optimize disk space
@@ -129,7 +119,7 @@ export PIP_NO_CACHE_DIR=off
 # for >= 3.18, we added the conda-forge repo in the Singularity image
 export RETICULATE_MINICONDA_ENABLED=FALSE
 
-if [ "${PYTHONUSERBASE:-}" ] # backwards compatibility w/ RELEASE_3_1[45]
+if [ "${PYTHONUSERBASE:-}" ] # backwards compatibility w/ RELEASE_3_1[4589]
 then
   export PYTHONUSERBASE="${PYTHONUSERBASE}"
   export PATH=\$(python -msite --user-base)/bin:\${PATH}
@@ -165,7 +155,9 @@ echo 1000 > /proc/self/oom_score_adj
 ( 
   echo 0 > /proc/self/oom_score_adj
 
-  singularity exec --nv --cleanenv \
+  singularity exec --nv --containall \
+   --scratch /run,/scratch,/tmp,/var/lib/rstudio-server \
+   --workdir "${WORKDIR}" \
    "${container_image}" \
    sh -c "USER=${USER} rserver \
    --www-port ${port} \
