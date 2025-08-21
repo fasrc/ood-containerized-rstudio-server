@@ -19,6 +19,24 @@ Directories to delete to "clean" your Python/R environment:
 - ` ~/R/ifxrstudio/RELEASE_<version>/`
 - `~/.virtualenvs/`
 
+## Filesystem
+
+Checking the "Start rstudio with a new configuration" box should the RStudio [user state directory](https://docs.posit.co/ide/server-pro/admin/rstudio_pro_sessions/workspace_management.html#user-state-storage) (~/.local/share/rstudio) to be a mountpoint for a scratch filesystem (created by `singularity exec --scratch ...`):
+
+```
+nweeks@holy8a26602:~$ df -h ~/.local/share/rstudio
+Filesystem                      Size  Used Avail Use% Mounted on
+/dev/mapper/vg_root-lv_scratch  397G   19G  379G   5% /n/home12/nweeks/.local/share/rstudio
+```
+
+If the "Start rstudio with a new configuration" box is unchecked---or if there is a problem with that feature---then there will be no filesystem mounted at ~/.local/share/rstudio:
+
+```
+nweeks@holy8a26602:~$ df -h ~/.local/share/rstudio
+Filesystem      Size  Used Avail Use% Mounted on
+tmpfs            95G   37G   59G  39% /n/home12/nweeks
+```
+
 ## R Packages
 
 1. Pinned date
