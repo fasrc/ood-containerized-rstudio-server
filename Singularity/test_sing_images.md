@@ -19,22 +19,27 @@ Directories to delete to "clean" your Python/R environment:
 - ` ~/R/ifxrstudio/RELEASE_<version>/`
 - `~/.virtualenvs/`
 
+Launch OOD RStudio Server with:
+
+* **Number of CPUs to allocate**: 3
+
 ## Filesystem
 
-Checking the "Start rstudio with a new configuration" box should the RStudio [user state directory](https://docs.posit.co/ide/server-pro/admin/rstudio_pro_sessions/workspace_management.html#user-state-storage) (~/.local/share/rstudio) to be a mountpoint for a scratch filesystem (created by `singularity exec --scratch ...`):
+* **If the "Start rstudio with a new configuration" box was checked**: the RStudio [user state directory](https://docs.posit.co/ide/server-pro/admin/rstudio_pro_sessions/workspace_management.html#user-state-storage) (~/.local/share/rstudio) to be a mountpoint for a scratch filesystem (created by `singularity exec --scratch ...`), the following `findmnt` command should list ~/.local/share/rstudio:
 
 ```
-nweeks@holy8a26602:~$ df -h ~/.local/share/rstudio
-Filesystem                      Size  Used Avail Use% Mounted on
-/dev/mapper/vg_root-lv_scratch  397G   19G  379G   5% /n/home12/nweeks/.local/share/rstudio
+nweeks@holy8a24101:~$ findmnt -o TARGET,FSTYPE,SRC -R $(dirname $HOME)
+TARGET                                  FSTYPE SOURCE
+/n/home12                               nfs    rcstorenfs:/ifs/rc_homes/home12
+└─/n/home12/nweeks/.local/share/rstudio xfs    /dev/mapper/vg_root-lv_scratch[/rstudio-server.6P6RkQ/rstudio]
 ```
 
-If the "Start rstudio with a new configuration" box is unchecked---or if there is a problem with that feature---then there will be no filesystem mounted at ~/.local/share/rstudio:
+* **If the "Start rstudio with a new configuration" box is unchecked**: (or if there is a problem with that feature) then the following `findmnt` command will not reveal filesystem mounted at ~/.local/share/rstudio:
 
 ```
-nweeks@holy8a26602:~$ df -h ~/.local/share/rstudio
-Filesystem      Size  Used Avail Use% Mounted on
-tmpfs            95G   37G   59G  39% /n/home12/nweeks
+nweeks@holy8a24101:~$ findmnt -o TARGET,FSTYPE,SOURCE  $(dirname $HOME)
+TARGET    FSTYPE SOURCE
+/n/home12 nfs    rcstorenfs:/ifs/rc_homes/home12
 ```
 
 ## R Packages
@@ -42,26 +47,48 @@ tmpfs            95G   37G   59G  39% /n/home12/nweeks
 1. Pinned date
 
    Ensure that the R packages are comming from a pinned date and **not** latest.
-   For example:
 
    ```
-   > install.packages("data.table")
-   Installing package into ‘/n/home_rc/paulasan/R/ifxrstudio/RELEASE_3_19’
+   > install.packages("parallelly")
+   Installing package into ‘/n/home12/nweeks/R/ifxrstudio/RELEASE_3_20’
    (as ‘lib’ is unspecified)
-   trying URL 'https://p3m.dev/cran/__linux__/jammy/2024-10-30/src/contrib/data.table_1.16.2.tar.gz'
-   Content type 'binary/octet-stream' length 2451551 bytes (2.3 MB)
+   trying URL 'https://p3m.dev/cran/__linux__/noble/2025-02-27/src/contrib/parallelly_1.42.0.tar.gz'
+   Content type 'binary/octet-stream' length 537560 bytes (524 KB)
    ==================================================
-   downloaded 2.3 MB
+   downloaded 524 KB
 
-   * installing *binary* package ‘data.table’ ...
-   * DONE (data.table)
+   * installing *binary* package ‘parallelly’ ...
+   * DONE (parallelly)
 
    The downloaded source packages are in
-        ‘/tmp/RtmpAEk4LG/downloaded_packages’
+           ‘/tmp/Rtmp1AiMaa/downloaded_packages’
    ```
 
-   Above, the package is downloaded from `https://p3m.dev/cran/__linux__/jammy/2024-10-30/src/contrib/data.table_1.16.2.tar.gz`.
-   Note the date `2024-10-30` and not `latest`.
+   Above, the package is downloaded from `https://p3m.dev/cran/__linux__/noble/2025-02-27/src/contrib/parallelly_1.42.0.tar.gz`
+   Note the date `2025-02-27` and not `latest`.
+
+
+2. CPUs available
+
+   Check that the environment variable `OMP_NUM_THREADS=3`, and the number of available CPUs (determined by `parallelly::availableCores(which="all")` is also 3:
+
+   ```
+   > Sys.getenv("OMP_NUM_THREADS")
+   [1] "3"
+   > parallelly::availableCores(which="all")
+              system /proc/self/status             nproc
+                 112                 3                 3
+   ```
+
+   *FAILURE*: If the environment variable `OMP_NUM_THREADS=2` and `BiocParallel` column is visible (indicating the environment variable `BIOCPARALLEL_NUM_WORKERS=4` is set), then the Bioconductor image's [Renviron.site](https://bioconductor.org/checkResults/devel/bioc-LATEST/Renviron.bioc) was not successfully overwritten.
+
+   ```
+   > Sys.getenv("OMP_NUM_THREADS")
+   [1] "2"
+   > parallelly::availableCores(which="all")
+              system /proc/self/status             nproc     BiocParallel
+                 112                 3                 3                4
+   ```
 
 ## Python packages via `pip` (RELEASE <= 3.19)
 
