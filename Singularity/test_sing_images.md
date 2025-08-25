@@ -19,31 +19,76 @@ Directories to delete to "clean" your Python/R environment:
 - ` ~/R/ifxrstudio/RELEASE_<version>/`
 - `~/.virtualenvs/`
 
+Launch OOD RStudio Server with:
+
+* **Number of CPUs to allocate**: 3
+
+## Filesystem
+
+* **If the "Start rstudio with a new configuration" box was checked**: the RStudio [user state directory](https://docs.posit.co/ide/server-pro/admin/rstudio_pro_sessions/workspace_management.html#user-state-storage) (~/.local/share/rstudio) to be a mountpoint for a scratch filesystem (created by `singularity exec --scratch ...`), the following `findmnt` command should list ~/.local/share/rstudio:
+
+```
+nweeks@holy8a24101:~$ findmnt -o TARGET,FSTYPE,SOURCE -R $(dirname $HOME)
+TARGET                                  FSTYPE SOURCE
+/n/home12                               nfs    rcstorenfs:/ifs/rc_homes/home12
+└─/n/home12/nweeks/.local/share/rstudio xfs    /dev/mapper/vg_root-lv_scratch[/rstudio-server.6P6RkQ/rstudio]
+```
+
+* **If the "Start rstudio with a new configuration" box is unchecked**: (or if there is a problem with that feature) then the following `findmnt` command will not reveal filesystem mounted at ~/.local/share/rstudio:
+
+```
+nweeks@holy8a24101:~$ findmnt -o TARGET,FSTYPE,SOURCE  $(dirname $HOME)
+TARGET    FSTYPE SOURCE
+/n/home12 nfs    rcstorenfs:/ifs/rc_homes/home12
+```
+
 ## R Packages
 
 1. Pinned date
 
    Ensure that the R packages are comming from a pinned date and **not** latest.
-   For example:
 
    ```
-   > install.packages("data.table")
-   Installing package into ‘/n/home_rc/paulasan/R/ifxrstudio/RELEASE_3_19’
+   > install.packages("parallelly")
+   Installing package into ‘/n/home12/nweeks/R/ifxrstudio/RELEASE_3_20’
    (as ‘lib’ is unspecified)
-   trying URL 'https://p3m.dev/cran/__linux__/jammy/2024-10-30/src/contrib/data.table_1.16.2.tar.gz'
-   Content type 'binary/octet-stream' length 2451551 bytes (2.3 MB)
+   trying URL 'https://p3m.dev/cran/__linux__/noble/2025-02-27/src/contrib/parallelly_1.42.0.tar.gz'
+   Content type 'binary/octet-stream' length 537560 bytes (524 KB)
    ==================================================
-   downloaded 2.3 MB
+   downloaded 524 KB
 
-   * installing *binary* package ‘data.table’ ...
-   * DONE (data.table)
+   * installing *binary* package ‘parallelly’ ...
+   * DONE (parallelly)
 
    The downloaded source packages are in
-        ‘/tmp/RtmpAEk4LG/downloaded_packages’
+           ‘/tmp/Rtmp1AiMaa/downloaded_packages’
    ```
 
-   Above, the package is downloaded from `https://p3m.dev/cran/__linux__/jammy/2024-10-30/src/contrib/data.table_1.16.2.tar.gz`.
-   Note the date `2024-10-30` and not `latest`.
+   Above, the package is downloaded from `https://p3m.dev/cran/__linux__/noble/2025-02-27/src/contrib/parallelly_1.42.0.tar.gz`
+   Note the date `2025-02-27` and not `latest`.
+
+
+2. CPUs available
+
+   Check that the environment variable `OMP_NUM_THREADS=3`, and the number of available CPUs (determined by `parallelly::availableCores(which="all")` is also 3:
+
+   ```
+   > Sys.getenv("OMP_NUM_THREADS")
+   [1] "3"
+   > parallelly::availableCores(which="all")
+              system /proc/self/status             nproc
+                 112                 3                 3
+   ```
+
+   *FAILURE*: If the environment variable `OMP_NUM_THREADS=2` and `BiocParallel` column is visible (indicating the environment variable `BIOCPARALLEL_NUM_WORKERS=4` is set), then the Bioconductor image's [Renviron.site](https://bioconductor.org/checkResults/devel/bioc-LATEST/Renviron.bioc) was not successfully overwritten.
+
+   ```
+   > Sys.getenv("OMP_NUM_THREADS")
+   [1] "2"
+   > parallelly::availableCores(which="all")
+              system /proc/self/status             nproc     BiocParallel
+                 112                 3                 3                4
+   ```
 
 ## Python packages via `pip` (RELEASE <= 3.19)
 
@@ -98,43 +143,7 @@ Directories to delete to "clean" your Python/R environment:
    > library(spacyr)
    ```
 
-4. Run an R script from R console
-
-   Open the file `/n/holylabs/LABS/rc_admin/Everyone/numpy_test.Rmd` on Cannon or  `/n/netscratch/rc_admin/Everyone/numpy_test.Rmd` on FASSE.
-
-   ````bash
-   paulasan@holygpu8a22103:~$ cat /n/holylabs/LABS/rc_admin/Everyone/numpy_test.Rmd
-   ---
-   title: "test_numpy"
-   output: html_document
-   date: '2022-09-09'
-   ---
-   
-   ```{python}
-   import numpy as np
-   a = np.arange(6)
-   a2 = a[np.newaxis, :]
-   a2.shape
-   ```
-   ````
-
-   You may need to respond Yes/No in the R console:
-
-   ```
-   > reticulate::repl_python()
-   Would you like to create a default Python environment for the reticulate package? (Yes/no/cancel) no
-   Python 3.10.12 (/usr/bin/python3)
-   Reticulate 1.36.1 REPL -- A Python interpreter in R.
-   Enter 'exit' or 'quit' to exit the REPL and return to R.
-   >>> import numpy as np
-   >>> a = np.arange(6)
-   >>> a2 = a[np.newaxis, :]
-   >>> a2.shape
-   (1, 6)
-   >>>
-   ```
-  
-5. Update existing package
+4. Update existing package
 
    If you try to install a package and get an output saying `requirement
    already satisfied`, e.g.:
@@ -177,7 +186,7 @@ The instructions below were adapted from [reticulate docs](https://rstudio.githu
    > virtualenv_install("r-reticulate", "scipy")
    ```
 
-   It is important to restart R after installing a Python package otherwise you will get an error:
+   It is important to restart R (RELEASE <= 3.19) after installing a Python package otherwise you will get an error:
 
    ```R
    > scipy <- import("scipy")
@@ -185,7 +194,7 @@ The instructions below were adapted from [reticulate docs](https://rstudio.githu
    ModuleNotFoundError: No module named 'scipy'
    ```
 
-   Restart R (Session -> Restart R). Then
+   Restart R (Session -> Restart R) (RELEASE <= 3.19). Then
 
    ```R
    > library(reticulate)
@@ -194,7 +203,34 @@ The instructions below were adapted from [reticulate docs](https://rstudio.githu
    > pd <- import("pandas")
    ```
 
-#### Create a`TF` virtualenv and install TensorFlow (RELEASE <= 3.19)
+2. Check that python works from R console
+
+   On the R console, first run `reticulate::repl_python()`. Then, copy and paste the python code below on the `>>>` line. Press enter to run it.
+
+   Note that Python is in `~/.virtualenvs/r-reticulate`.
+
+   ```bash
+   > reticulate::repl_python()
+   Python 3.12.3 (/n/home_rc/paulasan/.virtualenvs/r-reticulate/bin/python)
+   Reticulate 1.40.0 REPL -- A Python interpreter in R.
+   Enter 'exit' or 'quit' to exit the REPL and return to R.
+   >>> import numpy as np
+   >>> a = np.arange(6)
+   >>> a2 = a[np.newaxis, :]
+   >>> a2.shape
+   (1, 6)
+   ```
+
+   Python code to copy and paste on R console
+
+   ```bash
+   import numpy as np
+   a = np.arange(6)
+   a2 = a[np.newaxis, :]
+   a2.shape
+   ```
+
+#### Create a`TF` virtualenv and install TensorFlow (RELEASE <= 3.18)
 
 For TensorFlow, ensure that you test on a GPU node.
 
@@ -299,7 +335,7 @@ tf.Tensor(
 > conda_create("r-conda")
 + /n/home_rc/paulasan/.local/share/r-miniconda/bin/conda create --yes --name r-conda 'python=3.10' --quiet -c conda-forge
 
-# Restart R (Session -> Restart R)
+# Restart R (Session -> Restart R) RELEASE <= 3.19
 
 # activate environment and install package scipy within environment
 > library(reticulate)
@@ -307,7 +343,7 @@ tf.Tensor(
 > conda_install("r-conda", "scipy")
 + /n/home_rc/paulasan/.local/share/r-miniconda/bin/conda install --yes --name r-conda -c conda-forge scipy
 
-# Restart R (Session -> Restart R)
+# Restart R (Session -> Restart R) RELEASE <= 3.19
 
 # activate environment and load python package
 > library(reticulate)
@@ -323,4 +359,17 @@ numpy_version:  1.26.4
 scipy:          /n/home_rc/paulasan/.local/share/r-miniconda/envs/r-conda/lib/python3.10/site-packages/scipy
 
 NOTE: Python version was forced by use_python() function
+
+# Check that python works (same check as in Reticulate)
+# Note that Python is in ~/.local/share/r-miniconda/envs/r-conda/ instead
+
+> reticulate::repl_python()
+Python 3.10.18 (/n/home_rc/paulasan/.local/share/r-miniconda/envs/r-conda/bin/python)
+Reticulate 1.40.0 REPL -- A Python interpreter in R.
+Enter 'exit' or 'quit' to exit the REPL and return to R.
+>>> import numpy as np
+>>> a = np.arange(6)
+>>> a2 = a[np.newaxis, :]
+>>> a2.shape
+(1, 6)
 ```
