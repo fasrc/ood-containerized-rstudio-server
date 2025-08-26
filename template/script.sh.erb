@@ -18,6 +18,8 @@ echo "Starting up rserver..."
 # https://github.com/rstudio/rstudio/blob/master/src/cpp/server/ServerSessionManager.cpp#L111
 export SINGULARITYENV_RSTUDIO_SESSION_TIMEOUT=0
 
+R_HOME=$(singularity exec --containall ${container_image} R RHOME)
+
 # Need a unique /tmp for this job for /tmp/rstudio-rsession & /tmp/rstudio-server
 # Need writable /run/rstudio-server :
 #   https://discourse.osc.edu/t/unable-to-launch-fully-containerized-rstudio/948
@@ -31,7 +33,7 @@ R_LIBS_USER=${HOME}/R/ifxrstudio/${image_tag}
 mkdir -p "${R_LIBS_USER}"
 
 # add bind paths from /etc/singularity/singularity.conf (except /scratch) and rsession.sh
-export SINGULARITY_BIND="/n:/n,/net:/net,/cvmfs:/cvmfs,${WORKDIR}/rsession.sh:/etc/rstudio/rsession.sh"
+export SINGULARITY_BIND="/n:/n,/net:/net,/cvmfs:/cvmfs,${WORKDIR}/rsession.sh:/etc/rstudio/rsession.sh,${WORKDIR}/Renviron.site:${R_HOME}/etc/Renviron.site"
 
 # only needed for fasse
 export SINGULARITY_BIND="/ncf:/ncf,${SINGULARITY_BIND}"
@@ -51,7 +53,7 @@ then
 provider=sqlite
 directory=/var/lib/rstudio-server
 END
-  export SINGULARITY_BIND="${WORKDIR}/database.conf:/etc/rstudio/database.conf,${WORKDIR}/var/lib/rstudio-server:/var/lib/rstudio-server,${SINGULARITY_BIND}"
+  export SINGULARITY_BIND="${SINGULARITY_BIND},${WORKDIR}/database.conf:/etc/rstudio/database.conf,${WORKDIR}/var/lib/rstudio-server:/var/lib/rstudio-server"
 fi
 
 if [ ${image_version} -eq 14 ]
@@ -93,8 +95,20 @@ fi
 # users can chose if starting from a fresh config or keep the default in HOME/.rstudio
 <%- if !context.custom_vanillaconf.to_i.zero? -%>
 mkdir -p ${WORKDIR}/rstudio $HOME/.local/share/rstudio
-export SINGULARITY_BIND="${WORKDIR}/rstudio:$HOME/.local/share/rstudio,${SINGULARITY_BIND}"
+export SINGULARITY_BIND="${SINGULARITY_BIND},${WORKDIR}/rstudio:$HOME/.local/share/rstudio"
 <%- end -%>
+
+# bioconductor_docker overrides Renviron.site with mostly-irrelevant and partly-undesirable
+# (e.g., BIOCPARALLEL_WORKER_NUMBER=4, OMP_NUM_THREADS=2) environment variables:
+# https://github.com/Bioconductor/bioconductor_docker/blob/devel/Dockerfile#L36-L47
+#
+# Replace Renviron.site with the minimal version defined for Rocker container images:
+# https://github.com/rocker-org/rocker-versioned2/blob/master/scripts/install_R_source.sh#L148-L149
+# TODO: remove if/when no longer using Bioconductor container images
+cat >${WORKDIR}/Renviron.site <<'END'
+R_LIBS=${R_LIBS-'/usr/local/lib/R/site-library:/usr/local/lib/R/library'}
+END
+
 
 # rsession needs to start with OMP_NUM_THREADS set to prevent OpenBLAS
 # (and any other OpenMP-enhanced libraries used by R) from spawning too many
