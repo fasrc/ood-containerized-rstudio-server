@@ -33,7 +33,7 @@ R_LIBS_USER=${HOME}/R/ifxrstudio/${image_tag}
 mkdir -p "${R_LIBS_USER}"
 
 # add bind paths from /etc/singularity/singularity.conf (except /scratch) and rsession.sh
-export SINGULARITY_BIND="/n:/n,/net:/net,/cvmfs:/cvmfs,${WORKDIR}/rsession.sh:/etc/rstudio/rsession.sh,${WORKDIR}/Renviron.site:${R_HOME}/etc/Renviron.site"
+export SINGULARITY_BIND="/n:/n,/net:/net,/cvmfs:/cvmfs,${WORKDIR}/rsession.sh:/etc/rstudio/rsession.sh"
 
 readonly image_version=${image_tag#RELEASE_3_} 
 
@@ -95,6 +95,8 @@ mkdir -p ${WORKDIR}/rstudio $HOME/.local/share/rstudio
 export SINGULARITY_BIND="${SINGULARITY_BIND},${WORKDIR}/rstudio:$HOME/.local/share/rstudio"
 <%- end -%>
 
+if [ ${image_version} -le 20 ] # if bioconductor_docker-based image
+then
 # bioconductor_docker overrides Renviron.site with mostly-irrelevant and partly-undesirable
 # (e.g., BIOCPARALLEL_WORKER_NUMBER=4, OMP_NUM_THREADS=2) environment variables:
 # https://github.com/Bioconductor/bioconductor_docker/blob/devel/Dockerfile#L36-L47
@@ -105,7 +107,8 @@ export SINGULARITY_BIND="${SINGULARITY_BIND},${WORKDIR}/rstudio:$HOME/.local/sha
 cat >${WORKDIR}/Renviron.site <<'END'
 R_LIBS=${R_LIBS-'/usr/local/lib/R/site-library:/usr/local/lib/R/library'}
 END
-
+export SINGULARITY_BIND="${SINGULARITY_BIND},${WORKDIR}/Renviron.site:${R_HOME}/etc/Renviron.site"
+fi
 
 # rsession needs to start with OMP_NUM_THREADS set to prevent OpenBLAS
 # (and any other OpenMP-enhanced libraries used by R) from spawning too many

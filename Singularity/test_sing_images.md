@@ -373,6 +373,8 @@ tf.Tensor(
 > use_condaenv("r-conda")
 > conda_install("r-conda", "scipy")
 + /n/home_rc/paulasan/.local/share/r-miniconda/bin/conda install --yes --name r-conda -c conda-forge scipy
+> conda_install("r-conda", "pandas")
+...
 
 # Restart R (Session -> Restart R) RELEASE <= 3.19
 

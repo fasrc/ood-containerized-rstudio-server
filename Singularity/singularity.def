@@ -1,11 +1,13 @@
 bootstrap: docker
-from: docker.io/bioconductor/ml-verse:RELEASE_3_20-R-4.4.2
+from: ghcr.io/rocker-org/geospatial:4.5.1
 
-# this bioconductor/ml-verse image was built from a rocker :latest image;
-# pin CRAN to specific dates corresponding to rocker image:
-# https://github.com/rocker-org/rocker-versioned2/wiki/Versions
 %post
     apt update
     apt install -y libsecret-1-dev
-    echo 'options(repos = c(CRAN = "https://p3m.dev/cran/__linux__/noble/2025-02-27"), download.file.method = "libcurl")' >> $(R RHOME)/etc/Rprofile.site
-    echo 'options(reticulate.miniconda.url = "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-x86_64.sh")' >> $(R RHOME)/etc/Rprofile.site
+
+    curl -LO https://raw.githubusercontent.com/Bioconductor/bioconductor_docker/refs/heads/RELEASE_3_21/bioc_scripts/install_bioc_sysdeps.sh
+    sh -x ./install_bioc_sysdeps.sh
+    rm ./install_bioc_sysdeps.sh
+
+    ./rocker_scripts/install_python.sh
+
