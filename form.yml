@@ -14,7 +14,7 @@ attributes:
     help: |
       *sbatch -p, --partition=\<partition_names\>*
 
-      [Slurm partition](https://www.rc.fas.harvard.edu/resources/running-jobs/#Slurm_partitions) name (e.g., **shared** ), or comma-separated list of partition names (e.g., **shared,test** )
+      [Slurm partition](https://docs.rc.fas.harvard.edu/kb/running-jobs/#Slurm_Partitions) name (e.g., **shared** ), or comma-separated list of partition names (e.g., **shared,test** )
   custom_email_address:
     label: (optional) email address for job status notification
     widget: text_field
