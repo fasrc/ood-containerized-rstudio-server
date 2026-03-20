@@ -44,6 +44,7 @@ scheduler, you wil likely need to modify other files.
 You can build the Singularity containers using the Singularity definition files
 provided in this repository:
 
+- [RELEASE 3.20](Singularity/release_3_20.def)
 - [RELEASE 3.19](Singularity/release_3_19.def)
 - [RELEASE 3.18](Singularity/release_3_18.def)
  
