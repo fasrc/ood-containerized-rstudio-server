@@ -16,7 +16,7 @@ Tests are separated into two categories:
 Directories to delete to "clean" your Python/R environment:
 
 - `~/.local/`
-- ` ~/R/ifxrstudio/RELEASE_<version>/`
+- `~/R/ifxrstudio/RELEASE_<version>/`
 - `~/.virtualenvs/`
 
 Launch OOD RStudio Server with:
@@ -373,6 +373,8 @@ tf.Tensor(
 > use_condaenv("r-conda")
 > conda_install("r-conda", "scipy")
 + /n/home_rc/paulasan/.local/share/r-miniconda/bin/conda install --yes --name r-conda -c conda-forge scipy
+> conda_install("r-conda", "pandas")
++ /n/home_rc/paulasan/.local/share/r-miniconda/bin/conda install --yes --name r-conda -c conda-forge pandas
 
 # Restart R (Session -> Restart R) RELEASE <= 3.19
 
