@@ -1,14 +1,13 @@
 # RStudio Server
 
-RStudio Server singularity images used to be from [rocker
-project](https://github.com/rocker-org/rocker-versioned2). 
+## Overview
 
-Release 3.16 and 3.18, come from [Bioconductor
-ml-verse](https://github.com/Bioconductor/bioconductor_docker/pkgs/container/ml-verse)
-to provide GPU support.
-
-On Release 3.19, FASRC noticed that very few people used RStudio Server with
-GPUs, so we dropped GPU for now (March 2026).
+An [Open OnDemand](https://openondemand.org/) Batch Connect app that launches
+[RStudio Server](https://posit.co/products/open-source/rstudio-server/) in a
+Singularity container on a compute node. The containers are based on
+[Rocker](https://rocker-project.org/) /
+[Bioconductor](https://www.bioconductor.org) images and provide a
+curated R environment including geospatial and Bioconductor packages.
 
 ## FASRC Cannon 
 
@@ -47,7 +46,13 @@ provided in this repository:
 - [RELEASE 3.20](Singularity/release_3_20.def)
 - [RELEASE 3.19](Singularity/release_3_19.def)
 - [RELEASE 3.18](Singularity/release_3_18.def)
- 
+
+> [!IMPORTANT]
+> **GPU support**
+> Releases 3.15 through 3.20 come from [Bioconductor
+ml-verse](https://github.com/Bioconductor/bioconductor_docker/pkgs/container/ml-verse)
+> and may have GPU support. 
+
 ### Testing
 
 Before deploying a new release, perform the tests in [Singularity/test_sing_images](Singularity/test_sing_images.md).
