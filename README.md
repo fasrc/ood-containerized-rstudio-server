@@ -1,19 +1,69 @@
 # RStudio Server
 
-RStudio Server singularity images used to be from [rocker
-project](https://github.com/rocker-org/rocker-versioned2). Since release 3.16,
-they come from [Bioconductor
-ml-verse](https://github.com/Bioconductor/bioconductor_docker/pkgs/container/ml-verse)to provide GPU support.
+## Overview
 
-## `R_LIBS_USER`
+An [Open OnDemand](https://openondemand.org/) Batch Connect app that launches
+[RStudio Server](https://posit.co/products/open-source/rstudio-server/) in a
+Singularity container on a compute node. The containers are based on
+[Rocker](https://rocker-project.org/) /
+[Bioconductor](https://www.bioconductor.org) images and provide a
+curated R environment including geospatial and Bioconductor packages.
 
-`R_LIBS_USER` is set to `$HOME/R/ifxrstudio:${TAG}`, e.g. `RELEASE_3_13`
+## FASRC Cannon 
 
-## Tests
+If you are running this app on FASRC's Cannon cluster, you can
+simply clone to `~/.fasrcood/dev` and it will show in your [Sandbox
+Apps](https://rcood.rc.fas.harvard.edu/pun/sys/dashboard/admin/dev/products). 
+
+## Site-specific modifications
+
+If you wish to use this app in a different cluster, some files need to edited to
+conform to your site's OOD implementation. All necessary and potential
+modifications are commented with a `site-specific` tag. For example, the file
+`form.yml` has for slurm partition:
+
+```
+  bc_queue:
+# site-specific: change default partition
+    value: "test"
+```
+
+List of files to edit:
+
+1. [`form.yml`](form.yml)
+2. [`manifest.yml`](manifest.yml)
+3. [`template/before.sh.erb`](template/before.sh.erb)
+4. [`template/script.sh.erb`](template/script.sh.erb)
+
+This app assumes the cluster uses slurm as the scheduler. If you use a different
+scheduler, you wil likely need to modify other files.
+
+## Singularity containers
+
+You can build the Singularity containers using the Singularity definition files
+provided in this repository:
+
+- [RELEASE 3.20](Singularity/release_3_20.def)
+- [RELEASE 3.19](Singularity/release_3_19.def)
+- [RELEASE 3.18](Singularity/release_3_18.def)
+
+> [!IMPORTANT]
+> **GPU support**
+> Releases 3.15 through 3.20 come from [Bioconductor
+ml-verse](https://github.com/Bioconductor/bioconductor_docker/pkgs/container/ml-verse)
+> and may have GPU support. 
+
+### Testing
 
 Before deploying a new release, perform the tests in [Singularity/test_sing_images](Singularity/test_sing_images.md).
 
-## R packages pinned version
+## R packages
+
+### `R_LIBS_USER`
+
+`R_LIBS_USER` is set to `$HOME/R/ifxrstudio:${TAG}`, e.g. `RELEASE_3_13`
+
+### R packages pinned version
 
 R packages in RStudio Server are tied to a specific CRAN version.
 
@@ -39,7 +89,7 @@ versions](https://github.com/rocker-org/rocker-versioned2/wiki/Versions).
 On release 3.16, Nathan Weeks changed to the [Bioconductor
 ml-verse](https://github.com/Bioconductor/bioconductor_docker/pkgs/container/ml-verse)
 project to support GPUs. The same pinning is ensured because
-bioconductor_docker:ml-verse uses the upstream rocker/ml-verse base image --
+`bioconductor_docker:ml-verse` uses the upstream `rocker/ml-verse` base image --
 e.g., see this
 [dockerfile](https://github.com/rocker-org/rocker-versioned2/blob/f7161ec6d4310518df14a5ab47fdde098c8764fb/dockerfiles/ml-verse_4.3.3.Dockerfile#L10)
 for release 3.18.

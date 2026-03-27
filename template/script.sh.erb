@@ -20,12 +20,14 @@ export SINGULARITYENV_RSTUDIO_SESSION_TIMEOUT=0
 
 R_HOME=$(singularity exec --containall ${container_image} R RHOME)
 
+# site-specific: may need to change temp dir
 # Need a unique /tmp for this job for /tmp/rstudio-rsession & /tmp/rstudio-server
 # Need writable /run/rstudio-server :
 #   https://discourse.osc.edu/t/unable-to-launch-fully-containerized-rstudio/948
 # Create workdir at /scratch/rstudio-server.XXXXXX (`mktemp -d` will fill in XXXXXX with random alphanumeric characters)
 WORKDIR=$(mktemp -d /scratch/rstudio-server.XXXXXX)
 
+# site-specific: may need to change R_LIBS_USER to a different dir
 # use a different directory for each image to be safe...
 readonly image_tag=$(basename "${container_image##*:}" .sif)
 R_LIBS_USER=${HOME}/R/ifxrstudio/${image_tag}
@@ -77,7 +79,7 @@ esac
 if [ ${image_version} -eq 18 ] || [ ${image_version} -le 19 ]
 then
   export PATH=${PYTHONUSERBASE}/bin:${PATH}
-  # work around Ubuntu 22.04 / OpenBLAS 0.3.20 issue affecting Seurat (at least) (RT177061)
+  # work around Ubuntu 22.04 / OpenBLAS 0.3.20 issue affecting Seurat (at least) (Ticket RT177061)
   # https://github.com/rocker-org/rocker-versioned2/issues/836
   # Does not impact docker.io/bioconductor/ml-verse:3.20 (Ubuntu 24.04 / OpenBLAS 0.3.26)
   if  [ -e /sys/devices/cpu/caps/pmu_name ]
@@ -146,6 +148,7 @@ END
 
 chmod +x ${WORKDIR}/rsession.sh
 
+# site-specific: this enables Github Pilot. Use caution with data security
 # only on Cannon due to DSL1 only for Github Pilot
 # enable GitHub Copilot for RStudio Server >= 2023.09.0
 # https://docs.posit.co/ide/user/ide/guide/tools/copilot.html
@@ -163,6 +166,7 @@ fi
 # (in the environment of the "singularity exec" commmand). To work around this,
 # setting USER in a shell command that invokes the rserver process
  
+# site-specific: if you don't want to handle children processes out-of-memory (OOM) errors, then only use the `singularity exec` command
 # set oom_score_adj to 1000 in job script (parent) so it app is terminated in
 # the event the rsession (child) OOMs to avoid the appearance of the app
 # continuing to function in OOD/Slurm with a 502 Proxy error on reconnect
