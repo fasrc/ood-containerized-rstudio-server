@@ -47,10 +47,6 @@ attributes:
       - [ "R 4.3.3 (Bioconductor 3.18, RStudio 2023.09.1)", "/n/sw/singularity_images/informatics/ifxrstudio/ifxrstudio:RELEASE_3_18.sif" ]
       - [ "R 4.2.3 (Bioconductor 3.16, RStudio 2023.03.0)", "/n/sw/singularity_images/informatics/ifxrstudio/ifxrstudio:RELEASE_3_16.sif" ]
       - [ "R 4.2.0 (Bioconductor 3.15, RStudio 2022.02.3)", "/n/sw/singularity_images/informatics/ifxrstudio/ifxrstudio:RELEASE_3_15.sif" ]
-      - [ "R 4.1.3 (Bioconductor 3.14, RStudio 2022.02.0)", "/n/sw/singularity_images/informatics/ifxrstudio/ifxrstudio:RELEASE_3_14.sif" ]
-      - [ "R 4.1.0 (Bioconductor 3.13, RStudio 1.4.1717)", "/n/sw/singularity_images/informatics/ifxrstudio/ifxrstudio:RELEASE_3_13.sif" ]
-      - [ "R 4.0.3 (Bioconductor 3.12, Rstudio 1.3.1093)", "/n/sw/singularity_images/informatics/ifxrstudio/ifxrstudio:RELEASE_3_12.sif" ]
-      - [ "R 4.0.0 (Bioconductor 3.11, Rstudio 1.3.1093)", "/n/sw/singularity_images/informatics/ifxrstudio/ifxrstudio:RELEASE_3_11.sif" ]
       - [ "R 3.6.2 (Bioconductor 3.10, Rstudio 1.2.5033)", "/n/sw/singularity_images/informatics/ifxrstudio/ifxrstudio:RELEASE_3_10.sif" ]
     help: |
       This defines the version of R/Bioconductor you want to use.
@@ -71,14 +67,16 @@ attributes:
       Leave blank if you do not have multiple Slurm accounts
 
   custom_vanillaconf:
-    label: "Start rstudio with a new configuration"
+    label: "Start RStudio with a new user state directory"
     widget: check_box
     value: 1
     help: |
-          **_Checking this box will start rstudio with a fresh configuration._** 
+          **_Checking this box will start RStudio with a temporary [user state directory](https://docs.posit.co/ide/server-pro/admin/rstudio_pro_sessions/workspace_management.html#user-state-storage) (`~/.local/share/rstudio`) that will persist only for the duration of the session._** 
           
-          This is useful if you need to run different instances at the same time with different configurations.<br> 
-          Leave the box unchecked if you want rstudio to start with the default configuration you have in your ~/.rstudio
+          This is useful for running multiple RStudio sessions, avoiding large autosaves in $HOME, or bypassing issues from old sessions.
+
+          Leave the box unchecked if you want RStudio reuse existing RStudio session data in ~/.local/config/rstudio.
+          New session data will also be saved there.
 
   extra_slurm:
     label: Additional Slurm options
