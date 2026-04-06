@@ -42,14 +42,11 @@ export SINGULARITY_BIND="/ncf:/ncf,${SINGULARITY_BIND}"
 
 readonly image_version=${image_tag#RELEASE_3_} 
 
-if [ ${image_version} -ge 12 ]
+if [ ${image_version} -ge 15 ]
 then
   # https://github.com/rstudio/rstudio/issues/5449#issuecomment-534184951
-  extra_options='--auth-timeout-minutes=0 --auth-stay-signed-in-days=30'
-fi
-
-if [ ${image_version} -ge 13 ]
-then
+  # https://github.com/grst/rstudio-server-conda/pull/18
+  extra_options="--auth-timeout-minutes=0 --auth-stay-signed-in-days=30 --server-user $USER"
   mkdir -m 700 -p ${WORKDIR}/var/lib/rstudio-server 
   cat > ${WORKDIR}/database.conf <<END
 provider=sqlite
@@ -58,41 +55,23 @@ END
   export SINGULARITY_BIND="${SINGULARITY_BIND},${WORKDIR}/database.conf:/etc/rstudio/database.conf,${WORKDIR}/var/lib/rstudio-server:/var/lib/rstudio-server"
 fi
 
-if [ ${image_version} -eq 14 ]
-then
-  # allow python packages to be installed into the venv
-  mkdir -p "${R_LIBS_USER}"/venv
-  # prepending ${PYTHONUSERBASE}/bin to PATH in rsession.sh doesn't work;
-  # PATH is overritten in /etc/bash.bashrc
-  PYTHONUSERBASE=/opt/venv/reticulate/local/lib/python3.8/dist-packages
-  RETICULATE_PYTHON=/opt/venv/reticulate/bin/python
-  export SINGULARITY_BIND="${SINGULARITY_BIND},${R_LIBS_USER}/venv:${PYTHONUSERBASE}"
-fi
-
-if [ ${image_version} -ge 14 ]
-then
-  # https://github.com/grst/rstudio-server-conda/pull/18
-  extra_options="--server-user $USER ${extra_options}"
-fi
-
 case ${image_version} in
-  14|15|18|19) mkdir -p ${PYTHONUSERBASE=${R_LIBS_USER}/python-user-base} ;;
+  15|18|19) mkdir -p ${PYTHONUSERBASE=${R_LIBS_USER}/python-user-base} ;;
 esac
 
-if [ ${image_version} -eq 18 ] || [ ${image_version} -le 19 ]
-then
-  export PATH=${PYTHONUSERBASE}/bin:${PATH}
-  # work around Ubuntu 22.04 / OpenBLAS 0.3.20 issue affecting Seurat (at least) (Ticket RT177061)
-  # https://github.com/rocker-org/rocker-versioned2/issues/836
-  # Does not impact docker.io/bioconductor/ml-verse:3.20 (Ubuntu 24.04 / OpenBLAS 0.3.26)
-  if  [ -e /sys/devices/cpu/caps/pmu_name ]
-  then
-    read pmu_name < /sys/devices/cpu/caps/pmu_name
-    case ${pmu_name} in
-      sapphire_rapids) OPENBLAS_CORETYPE=SKYLAKEX ;;
-    esac
-  fi
-fi
+case ${image_version} in
+  16|18|19)
+    # work around Ubuntu 22.04 / OpenBLAS 0.3.20 issue affecting Seurat (at least) (Ticket RT177061)
+    # https://github.com/rocker-org/rocker-versioned2/issues/836
+    # Does not impact docker.io/bioconductor/ml-verse:3.20 (Ubuntu 24.04 / OpenBLAS 0.3.26)
+    if  [ -e /sys/devices/cpu/caps/pmu_name ]
+    then
+      read pmu_name < /sys/devices/cpu/caps/pmu_name
+      case ${pmu_name} in
+        sapphire_rapids) OPENBLAS_CORETYPE=SKYLAKEX ;;
+      esac
+    fi ;;
+esac
 
 # users can chose if starting from a fresh config or keep the default in HOME/.rstudio
 <%- if !context.custom_vanillaconf.to_i.zero? -%>
@@ -135,16 +114,15 @@ export PIP_NO_CACHE_DIR=off
 # for >=3.18, we added the conda-forge repo in the Singularity image
 export RETICULATE_MINICONDA_ENABLED=FALSE
 
-if [ "${PYTHONUSERBASE:-}" ] # backwards compatibility w/ RELEASE_3_1[4589]
+if [ "${PYTHONUSERBASE:-}" ] # backwards compatibility w/ RELEASE_3_1[589]
 then
   export PYTHONUSERBASE="${PYTHONUSERBASE}"
   export PATH=\$(python -msite --user-base)/bin:\${PATH}
   export PYTHONPATH="${PYTHONUSERBASE}"
 fi
 # pdflatex & tlmgr
-export PATH=/usr/local/texlive/bin/x86_64-linux:${PATH}
+export PATH=/usr/local/texlive/bin/x86_64-linux:\${PATH}
 ${OPENBLAS_CORETYPE:+export OPENBLAS_CORETYPE=${OPENBLAS_CORETYPE}}
-${RETICULATE_PYTHON:+export RETICULATE_PYTHON=${RETICULATE_PYTHON}}
 # ensure proxies are set
 export http_proxy=http://rcproxy.rc.fas.harvard.edu:3128
 export https_proxy=http://rcproxy.rc.fas.harvard.edu:3128
