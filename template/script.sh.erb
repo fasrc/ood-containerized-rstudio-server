@@ -58,7 +58,6 @@ esac
 
 case ${image_version} in
   16|18|19)
-    export PATH=${PYTHONUSERBASE}/bin:${PATH}
     # work around Ubuntu 22.04 / OpenBLAS 0.3.20 issue affecting Seurat (at least) (Ticket RT177061)
     # https://github.com/rocker-org/rocker-versioned2/issues/836
     # Does not impact docker.io/bioconductor/ml-verse:3.20 (Ubuntu 24.04 / OpenBLAS 0.3.26)
@@ -120,7 +119,7 @@ then
 fi
 
 # pdflatex & tlmgr
-export PATH=/usr/local/texlive/bin/x86_64-linux:${PATH}
+export PATH=/usr/local/texlive/bin/x86_64-linux:\${PATH}
 ${OPENBLAS_CORETYPE:+export OPENBLAS_CORETYPE=${OPENBLAS_CORETYPE}}
 exec /usr/lib/rstudio-server/bin/rsession "\${@}"
 END
