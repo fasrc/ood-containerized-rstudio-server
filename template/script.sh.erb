@@ -39,7 +39,7 @@ export SINGULARITY_BIND="/n:/n,/net:/net,/cvmfs:/cvmfs,${WORKDIR}/rsession.sh:/e
 
 readonly image_version=${image_tag#RELEASE_3_} 
 
-if [ ${image_version} -ge 15 ]
+if [ ${image_version} -ge 16 ]
 then
   # https://github.com/rstudio/rstudio/issues/5449#issuecomment-534184951
   # https://github.com/grst/rstudio-server-conda/pull/18
@@ -53,7 +53,7 @@ END
 fi
 
 case ${image_version} in
-  15|18|19) mkdir -p ${PYTHONUSERBASE=${R_LIBS_USER}/python-user-base} ;;
+  18|19) mkdir -p ${PYTHONUSERBASE=${R_LIBS_USER}/python-user-base} ;;
 esac
 
 case ${image_version} in
