@@ -6,9 +6,10 @@ subcategory: Web Apps
 role: batch_connect
 # site-specific: change link to documentation
 description: |
-  This app will launch a single-node [RStudio Server](https://posit.co/products/open-source/rstudio-server/) instance on a compute node.
+  This app will launch a single-node [RStudio Server](https://posit.co/products/open-source/rstudio-server/) instance on a compute node on the [FASSE] cluster.
   This app provides a common software environment for R packages, including geospatial and Bioconductor packages.
 
   See [RStudio Server OOD app](https://docs.rc.fas.harvard.edu/kb/rstudio-server-vs-rstudio-desktop) for more information.
 
   * User-installed R libraries will be installed in *~/R/ifxrstudio/\<IMAGE_TAG\>*.
+  [FASSE]: https://www.rc.fas.harvard.edu/services/cluster-computing/#FASSE
