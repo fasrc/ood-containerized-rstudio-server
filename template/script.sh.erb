@@ -34,8 +34,49 @@ R_LIBS_USER=${HOME}/R/ifxrstudio/${image_tag}
 
 mkdir -p "${R_LIBS_USER}"
 
+# Slurm support (without sbatch/salloc)
+cat > ${WORKDIR}/sbatch.sh <<"END"
+#!/bin/sh
+echo "${0##*/} cannot be run within the RStudio Server container;" 1>&2
+echo "Must be run from the host via SSH, Jupyter Lab, OOD shell, or OOD Remote Desktop" 1>&2
+exit 1
+END
+
+chmod +x ${WORKDIR}/sbatch.sh
+
+# List Slurm bind paths (except sbatch and salloc)
 # add bind paths from /etc/singularity/singularity.conf (except /scratch) and rsession.sh
-export SINGULARITY_BIND="/n:/n,/net:/net,/cvmfs:/cvmfs,${WORKDIR}/rsession.sh:/etc/rstudio/rsession.sh,${WORKDIR}/Renviron.site:${R_HOME}/etc/Renviron.site"
+binds=(
+  /etc/nsswitch.conf
+  /etc/slurm
+  /etc/sssd/
+  /lib64/libnss_sss.so.2:/lib/libnss_sss.so.2
+  /slurm
+  /usr/bin/sacct
+  /usr/bin/scancel
+  /usr/bin/scontrol
+  /usr/bin/scrontab
+  /usr/bin/sinfo
+  /usr/bin/squeue
+  /usr/bin/srun
+  /usr/bin/sshare
+  /usr/bin/sstat
+  /usr/bin/strace
+  /usr/lib64/libmunge.so.2
+  /usr/lib64/slurm
+  /var/lib/sss
+  /var/run/munge:/run/munge
+  /n
+  /net
+  /cvmfs
+  ${WORKDIR}/sbatch.sh:/usr/bin/sbatch
+  ${WORKDIR}/sbatch.sh:/usr/bin/salloc
+  ${WORKDIR}/rsession.sh:/etc/rstudio/rsession.sh
+  ${WORKDIR}/Renviron.site:${R_HOME}/etc/Renviron.site
+)
+
+# Join with commas and export as one command
+export SINGULARITY_BIND="$(IFS=,; printf '%s' "${binds[*]}")"
 
 readonly image_version=${image_tag#RELEASE_3_} 
 
@@ -133,6 +174,7 @@ chmod +x ${WORKDIR}/rsession.sh
 if [ ${image_version} -ge 18 ]
 then
   echo 'copilot-enabled=1' > ${WORKDIR}/rsession.conf
+
   export SINGULARITY_BIND="${SINGULARITY_BIND},${WORKDIR}/rsession.conf:/etc/rstudio/rsession.conf"
 fi
 
@@ -159,7 +201,8 @@ echo 1000 > /proc/self/oom_score_adj
    --scratch /run,/scratch,/tmp,/var/lib/rstudio-server \
    --workdir "${WORKDIR}" \
    "${container_image}" \
-   sh -c "USER=${USER} rserver \
+   sh -c "echo 'slurm:x:$(id -u slurm):$(id -g slurm)::$(eval echo ~slurm):/bin/sh' >> /etc/passwd && \
+   USER=${USER} rserver \
    --www-port ${port} \
    --auth-none 0 \
    --auth-encrypt-password 0 \

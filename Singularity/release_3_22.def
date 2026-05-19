@@ -1,11 +1,20 @@
 bootstrap: docker
-from: docker.io/bioconductor/bioconductor:3.22-R-4.5.2
+from: ghcr.io/rocker-org/geospatial:4.5.2
 
-# this bioconductor/ml-verse image was built from a rocker :latest image;
-# pin CRAN to specific dates corresponding to rocker image:
-# https://github.com/rocker-org/rocker-versioned2/wiki/Versions
+%environment
+    export LIBSBML_CFLAGS='-I/usr/include'
+    export LIBSBML_LIBS='-lsbml'
+
+
 %post
+    export BIOCONDUCTOR_VERSION=3.22
+
     apt update
     apt install -y libsecret-1-dev
-    echo 'options(repos = c(CRAN = "https://p3m.dev/cran/__linux__/noble/2026-03-10"), download.file.method = "libcurl")' >> $(R RHOME)/etc/Rprofile.site
-    echo 'options(reticulate.miniconda.url = "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-x86_64.sh")' >> $(R RHOME)/etc/Rprofile.site
+
+    curl -LO https://raw.githubusercontent.com/Bioconductor/bioconductor_docker/refs/heads/RELEASE_3_22/bioc_scripts/install_bioc_sysdeps.sh
+    sh -x ./install_bioc_sysdeps.sh ${BIOCONDUCTOR_VERSION}
+    rm ./install_bioc_sysdeps.sh
+
+%labels
+    Authors Nathan Weeks, Paula Sanematsu.
