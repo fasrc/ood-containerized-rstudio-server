@@ -34,7 +34,7 @@ R_LIBS_USER=${HOME}/R/ifxrstudio/${image_tag}
 
 mkdir -p "${R_LIBS_USER}"
 
-# Slurm support (without sbatch/salloc)
+# Slurm support (without job submission)
 cat > ${WORKDIR}/sbatch.sh <<"END"
 #!/bin/sh
 echo "${0##*/} cannot be run within the RStudio Server container;" 1>&2
@@ -44,13 +44,21 @@ END
 
 chmod +x ${WORKDIR}/sbatch.sh
 
-# List Slurm bind paths (except sbatch and salloc)
-# add bind paths from /etc/singularity/singularity.conf (except /scratch) and rsession.sh
 binds=(
+  ${WORKDIR}/sbatch.sh:/usr/bin/sbatch
+  ${WORKDIR}/sbatch.sh:/usr/bin/scrontab
+  ${WORKDIR}/sbatch.sh:/usr/bin/salloc
+  ${WORKDIR}/sbatch.sh:/usr/bin/srun
+  ${WORKDIR}/rsession.sh:/etc/rstudio/rsession.sh
+  ${WORKDIR}/Renviron.site:${R_HOME}/etc/Renviron.site
+)
+
+# List Slurm bind paths
+# site-specific: assumes RHEL 8 or compatible; may need to be modified for other host OS
+binds+=(
   /etc/nsswitch.conf
   /etc/slurm
   /etc/sssd/
-  /lib64/libnss_sss.so.2:/lib/libnss_sss.so.2
   /slurm
   /usr/bin/sacct
   /usr/bin/scancel
@@ -58,21 +66,22 @@ binds=(
   /usr/bin/scrontab
   /usr/bin/sinfo
   /usr/bin/squeue
-  /usr/bin/srun
   /usr/bin/sshare
   /usr/bin/sstat
-  /usr/bin/strace
-  /usr/lib64/libmunge.so.2
+  /usr/lib64/libmunge.so.2:/lib/libmunge.so.2
+  /usr/lib64/libhistory.so.7:/lib/libhistory.so.7
+  /usr/lib64/libnss_sss.so.2:/lib/libnss_sss.so.2
+  /usr/lib64/libreadline.so.7:/lib/libreadline.so.7
   /usr/lib64/slurm
   /var/lib/sss
   /var/run/munge:/run/munge
+)
+
+# site-specific: bind-mount network filesystems
+binds+=(
   /n
   /net
   /cvmfs
-  ${WORKDIR}/sbatch.sh:/usr/bin/sbatch
-  ${WORKDIR}/sbatch.sh:/usr/bin/salloc
-  ${WORKDIR}/rsession.sh:/etc/rstudio/rsession.sh
-  ${WORKDIR}/Renviron.site:${R_HOME}/etc/Renviron.site
 )
 
 # Join with commas and export as one command
@@ -197,6 +206,7 @@ echo 1000 > /proc/self/oom_score_adj
 ( 
   echo 0 > /proc/self/oom_score_adj
 
+# site-specific: assume 'slurm' user is a local user & add to /etc/passwd in container
   singularity exec --nv --containall \
    --scratch /run,/scratch,/tmp,/var/lib/rstudio-server \
    --workdir "${WORKDIR}" \
