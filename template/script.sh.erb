@@ -120,6 +120,14 @@ case ${image_version} in
     fi ;;
 esac
 
+# set reticulate path inside R_LIBS_USER to avoid conflicts with other python
+# that uses ~/.local, the default reticulate miniconda path
+if [ ${image_version} -ge 22 ]
+then
+  mkdir -p ${R_LIBS_USER}/reticulate-miniconda
+  RETICULATE_MINICONDA_PATH=${R_LIBS_USER}/reticulate-miniconda
+fi
+
 # users can chose if starting from a fresh config or keep the default in HOME/.rstudio
 <%- if !context.custom_vanillaconf.to_i.zero? -%>
 mkdir -p ${WORKDIR}/rstudio $HOME/.local/share/rstudio
@@ -166,6 +174,13 @@ then
   export PYTHONUSERBASE="${PYTHONUSERBASE}"
   export PATH=\$(python -msite --user-base)/bin:\${PATH}
   export PYTHONPATH="${PYTHONUSERBASE}"
+fi
+
+# set reticulate path inside R_LIBS_USER to avoid conflicts with other python
+# that uses ~/.local, the default reticulate miniconda path
+if [ "${RETICULATE_MINICONDA_PATH:-}" ] # RELEASE_3_22
+then
+  export RETICULATE_MINICONDA_PATH=${RETICULATE_MINICONDA_PATH}
 fi
 
 # pdflatex & tlmgr
