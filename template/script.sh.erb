@@ -176,11 +176,13 @@ then
   export PYTHONPATH="${PYTHONUSERBASE}"
 fi
 
-# set reticulate path inside R_LIBS_USER to avoid conflicts with other python
-# that uses ~/.local, the default reticulate miniconda path
-if [ "${RETICULATE_MINICONDA_PATH:-}" ] # RELEASE_3_22
+# set paths for reticulate conda envs and python virtualenvs to be
+# inside R_LIBS_USER to avoid conflicts with other python libraries
+# that use ~/.local and ~/.virtualenvs, respectively
+if [ "${RETICULATE_MINICONDA_PATH:-}" ] # >=RELEASE_3_22
 then
   export RETICULATE_MINICONDA_PATH=${RETICULATE_MINICONDA_PATH}
+  export RETICULATE_VIRTUALENV_ROOT=${R_LIBS_USER}/reticulate-virtualenvs
 fi
 
 # pdflatex & tlmgr
