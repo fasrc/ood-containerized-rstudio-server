@@ -180,7 +180,7 @@ The instructions below were adapted from [reticulate docs](https://rstudio.githu
    ```R
    > install.packages("reticulate")
    > library(reticulate)
-   > py_install("pandas")
+   > virtualenv_install("r-reticulate", "pandas")
    Using Python: /usr/bin/python3.10
    Creating virtual environment '~/R/ifxrstudio/RELEASE_3_22/reticulate-virtualenvs/r-reticulate' ...
    > use_virtualenv("r-reticulate")
