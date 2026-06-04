@@ -15,9 +15,9 @@ Tests are separated into two categories:
 
 Directories to delete to "clean" your Python/R environment:
 
-- `~/.local/`
+- `~/.local/` (RELEASE < 3.22)
 - `~/R/ifxrstudio/RELEASE_<version>/`
-- `~/.virtualenvs/`
+- `~/.virtualenvs/` (RELEASE < 3.22)
 
 Launch OOD RStudio Server with:
 
@@ -37,7 +37,7 @@ TARGET                                  FSTYPE SOURCE
 * **If the "Start rstudio with a new configuration" box is unchecked**: (or if there is a problem with that feature) then the following `findmnt` command will not reveal filesystem mounted at ~/.local/share/rstudio:
 
 ```
-nweeks@holy8a24101:~$ findmnt -o TARGET,FSTYPE,SOURCE  $(dirname $HOME)
+nweeks@holy8a24101:~$ findmnt -o TARGET,FSTYPE,SOURCE -R $(dirname $HOME)
 TARGET    FSTYPE SOURCE
 /n/home12 nfs    rcstorenfs:/ifs/rc_homes/home12
 ```
@@ -178,10 +178,11 @@ The instructions below were adapted from [reticulate docs](https://rstudio.githu
 1. Install package in the default virtual environment `r-reticulate`:
 
    ```R
+   > install.packages("reticulate")
    > library(reticulate)
-   > py_install("pandas")
+   > virtualenv_install("r-reticulate", "pandas")
    Using Python: /usr/bin/python3.10
-   Creating virtual environment '~/.virtualenvs/r-reticulate' ...
+   Creating virtual environment '~/R/ifxrstudio/RELEASE_3_22/reticulate-virtualenvs/r-reticulate' ...
    > use_virtualenv("r-reticulate")
    > virtualenv_install("r-reticulate", "scipy")
    ```
@@ -207,12 +208,12 @@ The instructions below were adapted from [reticulate docs](https://rstudio.githu
 
    On the R console, first run `reticulate::repl_python()`. Then, copy and paste the python code below on the `>>>` line. Press enter to run it.
 
-   Note that Python is in `~/.virtualenvs/r-reticulate`.
+   Note that Python is in `~/R/ifxrstudio/RELEASE_<version>/reticulate-virtualenv
 
    ```bash
    > reticulate::repl_python()
-   Python 3.12.3 (/n/home_rc/paulasan/.virtualenvs/r-reticulate/bin/python)
-   Reticulate 1.40.0 REPL -- A Python interpreter in R.
+   Python 3.12.3 (/n/home_rc/paulasan/R/ifxrstudio/RELEASE_3_22/reticulate-virtualenvs/r-reticulate/bin/python))
+   Reticulate 1.45.0 REPL -- A Python interpreter in R.
    Enter 'exit' or 'quit' to exit the REPL and return to R.
    >>> import numpy as np
    >>> a = np.arange(6)
@@ -364,7 +365,7 @@ tf.Tensor(
 > library(reticulate)
 > install_miniconda()
 > conda_create("r-conda")
-+ /n/home_rc/paulasan/.local/share/r-miniconda/bin/conda create --yes --name r-conda 'python=3.10' --quiet -c conda-forge
++ /n/home_rc/paulasan/R/ifxrstudio/RELEASE_3_22/reticulate-miniconda/bin/conda create --yes --name r-conda 'python=3.12' --quiet -c conda-forge
 
 # Restart R (Session -> Restart R) RELEASE <= 3.19
 
@@ -372,9 +373,9 @@ tf.Tensor(
 > library(reticulate)
 > use_condaenv("r-conda")
 > conda_install("r-conda", "scipy")
-+ /n/home_rc/paulasan/.local/share/r-miniconda/bin/conda install --yes --name r-conda -c conda-forge scipy
++ /n/home_rc/paulasan/R/ifxrstudio/RELEASE_3_22/reticulate-miniconda/bin/conda install --yes --name r-conda -c conda-forge scipy
 > conda_install("r-conda", "pandas")
-+ /n/home_rc/paulasan/.local/share/r-miniconda/bin/conda install --yes --name r-conda -c conda-forge pandas
++ /n/home_rc/paulasan/R/ifxrstudio/RELEASE_3_22/reticulate-miniconda/bin/conda install --yes --name r-conda -c conda-forge pandas
 
 # Restart R (Session -> Restart R) RELEASE <= 3.19
 
@@ -383,13 +384,13 @@ tf.Tensor(
 > use_condaenv("r-conda")
 > scipy <- import("scipy")
 > py_config()
-python:         /n/home_rc/paulasan/.local/share/r-miniconda/envs/r-conda/bin/python
-libpython:      /n/home_rc/paulasan/.local/share/r-miniconda/envs/r-conda/lib/libpython3.10.so
-pythonhome:     /n/home_rc/paulasan/.local/share/r-miniconda/envs/r-conda:/n/home_rc/paulasan/.local/share/r-miniconda/envs/r-conda
-version:        3.10.14 | packaged by conda-forge | (main, Mar 20 2024, 12:45:18) [GCC 12.3.0]
-numpy:          /n/home_rc/paulasan/R/ifxrstudio/RELEASE_3_18/python-user-base/lib/python3.10/site-packages/numpy
-numpy_version:  1.26.4
-scipy:          /n/home_rc/paulasan/.local/share/r-miniconda/envs/r-conda/lib/python3.10/site-packages/scipy
+python:         /n/home_rc/paulasan/R/ifxrstudio/RELEASE_3_22/reticulate-miniconda/envs/r-conda/bin/python
+libpython:      /n/home_rc/paulasan/R/ifxrstudio/RELEASE_3_22/reticulate-miniconda/envs/r-conda/lib/libpython3.12.so
+pythonhome:     /n/home_rc/paulasan/R/ifxrstudio/RELEASE_3_22/reticulate-miniconda/envs/r-conda:/n/home_rc/paulasan/R/ifxrstudio/RELEASE_3_22/reticulate-miniconda/envs/r-conda
+version:        3.12.13 | packaged by conda-forge | (main, Mar  5 2026, 16:50:00) [GCC 14.3.0]
+numpy:          /n/home_rc/paulasan/R/ifxrstudio/RELEASE_3_22/reticulate-miniconda/envs/r-conda/lib/python3.12/site-packages/numpy
+numpy_version:  2.4.6
+scipy:          /n/home_rc/paulasan/R/ifxrstudio/RELEASE_3_22/reticulate-miniconda/envs/r-conda/lib/python3.12/site-packages/scipy
 
 NOTE: Python version was forced by use_python() function
 
@@ -397,8 +398,8 @@ NOTE: Python version was forced by use_python() function
 # Note that Python is in ~/.local/share/r-miniconda/envs/r-conda/ instead
 
 > reticulate::repl_python()
-Python 3.10.18 (/n/home_rc/paulasan/.local/share/r-miniconda/envs/r-conda/bin/python)
-Reticulate 1.40.0 REPL -- A Python interpreter in R.
+Python 3.12.13 (/n/home_rc/paulasan/R/ifxrstudio/RELEASE_3_22/reticulate-miniconda/envs/r-conda/bin/python)
+Reticulate 1.45.0 REPL -- A Python interpreter in R.
 Enter 'exit' or 'quit' to exit the REPL and return to R.
 >>> import numpy as np
 >>> a = np.arange(6)
