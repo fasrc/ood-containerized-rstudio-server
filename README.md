@@ -37,6 +37,9 @@ List of files to edit:
 
 This app assumes the cluster uses slurm as the scheduler. If you use a different
 scheduler, you wil likely need to modify other files.
+Slurm-related libraries and executables for querying Slurm are bind-mounted into the container,
+Slurm executables for submitting jobs are currently not supported, due to potential
+for user confusion from software/environment-variable mismatch between container and host.
 
 ## Singularity containers
 
