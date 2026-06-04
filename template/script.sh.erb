@@ -34,12 +34,62 @@ R_LIBS_USER=${HOME}/R/ifxrstudio/${image_tag}
 
 mkdir -p "${R_LIBS_USER}"
 
-# add bind paths from /etc/singularity/singularity.conf (except /scratch) and rsession.sh
-export SINGULARITY_BIND="/n:/n,/net:/net,/cvmfs:/cvmfs,${WORKDIR}/rsession.sh:/etc/rstudio/rsession.sh,${WORKDIR}/Renviron.site:${R_HOME}/etc/Renviron.site"
+# Slurm support (without job submission)
+cat > ${WORKDIR}/sbatch.sh <<"END"
+#!/bin/sh
+echo "${0##*/} cannot be run within the RStudio Server container;" 1>&2
+echo "Must be run from the host via SSH, Jupyter Lab, OOD shell, or OOD Remote Desktop" 1>&2
+exit 1
+END
+
+chmod +x ${WORKDIR}/sbatch.sh
+
+binds=(
+  ${WORKDIR}/sbatch.sh:/usr/bin/sbatch
+  ${WORKDIR}/sbatch.sh:/usr/bin/scrontab
+  ${WORKDIR}/sbatch.sh:/usr/bin/salloc
+  ${WORKDIR}/sbatch.sh:/usr/bin/srun
+  ${WORKDIR}/rsession.sh:/etc/rstudio/rsession.sh
+  ${WORKDIR}/Renviron.site:${R_HOME}/etc/Renviron.site
+)
+
+# List Slurm bind paths
+# site-specific: assumes RHEL 8 or compatible; may need to be modified for other host OS
+binds+=(
+  /etc/nsswitch.conf
+  /etc/slurm
+  /etc/sssd/
+  /slurm
+  /usr/bin/sacct
+  /usr/bin/scancel
+  /usr/bin/scontrol
+  /usr/bin/scrontab
+  /usr/bin/sinfo
+  /usr/bin/squeue
+  /usr/bin/sshare
+  /usr/bin/sstat
+  /usr/lib64/libmunge.so.2:/lib/libmunge.so.2
+  /usr/lib64/libhistory.so.7:/lib/libhistory.so.7
+  /usr/lib64/libnss_sss.so.2:/lib/libnss_sss.so.2
+  /usr/lib64/libreadline.so.7:/lib/libreadline.so.7
+  /usr/lib64/slurm
+  /var/lib/sss
+  /var/run/munge:/run/munge
+)
+
+# site-specific: bind-mount network filesystems
+binds+=(
+  /n
+  /net
+  /cvmfs
+)
+
+# Join with commas and export as one command
+export SINGULARITY_BIND="$(IFS=,; printf '%s' "${binds[*]}")"
 
 readonly image_version=${image_tag#RELEASE_3_} 
 
-if [ ${image_version} -ge 15 ]
+if [ ${image_version} -ge 16 ]
 then
   # https://github.com/rstudio/rstudio/issues/5449#issuecomment-534184951
   # https://github.com/grst/rstudio-server-conda/pull/18
@@ -53,7 +103,7 @@ END
 fi
 
 case ${image_version} in
-  15|18|19) mkdir -p ${PYTHONUSERBASE=${R_LIBS_USER}/python-user-base} ;;
+  18|19) mkdir -p ${PYTHONUSERBASE=${R_LIBS_USER}/python-user-base} ;;
 esac
 
 case ${image_version} in
@@ -69,6 +119,14 @@ case ${image_version} in
       esac
     fi ;;
 esac
+
+# set reticulate path inside R_LIBS_USER to avoid conflicts with other python
+# that uses ~/.local, the default reticulate miniconda path
+if [ ${image_version} -ge 22 ]
+then
+  mkdir -p ${R_LIBS_USER}/reticulate-miniconda
+  RETICULATE_MINICONDA_PATH=${R_LIBS_USER}/reticulate-miniconda
+fi
 
 # users can chose if starting from a fresh config or keep the default in HOME/.rstudio
 <%- if !context.custom_vanillaconf.to_i.zero? -%>
@@ -118,6 +176,15 @@ then
   export PYTHONPATH="${PYTHONUSERBASE}"
 fi
 
+# set paths for reticulate conda envs and python virtualenvs to be
+# inside R_LIBS_USER to avoid conflicts with other python libraries
+# that use ~/.local and ~/.virtualenvs, respectively
+if [ "${RETICULATE_MINICONDA_PATH:-}" ] # >=RELEASE_3_22
+then
+  export RETICULATE_MINICONDA_PATH=${RETICULATE_MINICONDA_PATH}
+  export RETICULATE_VIRTUALENV_ROOT=${R_LIBS_USER}/reticulate-virtualenvs
+fi
+
 # pdflatex & tlmgr
 export PATH=/usr/local/texlive/bin/x86_64-linux:\${PATH}
 ${OPENBLAS_CORETYPE:+export OPENBLAS_CORETYPE=${OPENBLAS_CORETYPE}}
@@ -133,6 +200,7 @@ chmod +x ${WORKDIR}/rsession.sh
 if [ ${image_version} -ge 18 ]
 then
   echo 'copilot-enabled=1' > ${WORKDIR}/rsession.conf
+
   export SINGULARITY_BIND="${SINGULARITY_BIND},${WORKDIR}/rsession.conf:/etc/rstudio/rsession.conf"
 fi
 
@@ -155,11 +223,13 @@ echo 1000 > /proc/self/oom_score_adj
 ( 
   echo 0 > /proc/self/oom_score_adj
 
+# site-specific: assume 'slurm' user is a local user & add to /etc/passwd in container
   singularity exec --nv --containall \
    --scratch /run,/scratch,/tmp,/var/lib/rstudio-server \
    --workdir "${WORKDIR}" \
    "${container_image}" \
-   sh -c "USER=${USER} rserver \
+   sh -c "echo 'slurm:x:$(id -u slurm):$(id -g slurm)::$(eval echo ~slurm):/bin/sh' >> /etc/passwd && \
+   USER=${USER} rserver \
    --www-port ${port} \
    --auth-none 0 \
    --auth-encrypt-password 0 \
