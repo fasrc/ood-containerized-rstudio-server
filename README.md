@@ -31,26 +31,26 @@ This app uses the Batch Connect `basic` template with Slurm.
 - **Batch Connect template:** `basic`
 - **Scheduler:** Slurm
 
-# got to here
+
 ## Screenshots
 
 <!-- A screenshot helps deployers verify their installation and helps users understand what they'll get. -->
 <!-- Place images in a screenshots/ or docs/ directory. -->
 
-![Jupyter running in browser](images/jupyter_screenshot.png)
+![Rstudio running in browser](images/rstudio_screenshot.png)
 
 ## Features
 
 <!-- List the key capabilities specific to THIS OOD app (not the upstream software). -->
 
-- Launches Jupyter via web server on compute nodes
+- Launches RStudio Server via web server on compute nodes
 - Supports GPU and CPU execution
 - Configurable partition, memory, CPU cores, GPU cards, and wall time via the launch form
 - Additional Slurm options pass-through (long format)
 - Reservation support and optional Slurm account
 - Email notification on job start
-- Module-based
-- Jupyterlab / Jupyter Notebook toggle
+- Containerized via Singularity image
+
 
 ## Requirements
 
@@ -58,6 +58,8 @@ This app uses the Batch Connect `basic` template with Slurm.
 
 <!-- Batch Connect: What must be installed on the compute nodes where jobs will run? -->
 <!-- Passenger: What must be installed on the OOD host? -->
+# got to here
+$\color{Red}\Huge{\textbf{got to here}}$
 
 - Centralized, read-only virtual environment (using Python 3.12 in this repo at time of writing)
   -  environment has jupyterlab, notebook and nb_conda_kernels installed in it, e.g.:
