@@ -1,26 +1,99 @@
-<form action="/rnode/<%= host %>/<%= port %>/auth-do-sign-in" method="post" target="_blank" onsubmit="return connect_rstudio('/rnode/<%= host %>/<%= port %>', this);">
+<form id="rstudio-connect-form"
+      action="/rnode/<%= host %>/<%= port %>/auth-do-sign-in"
+      method="post"
+      target="rstudio-auth-frame"
+      onsubmit="return connect_rstudio(this);">
   <input type="hidden" name="username" value="<%= ENV["USER"] %>">
   <input type="hidden" name="password" value="<%= password %>">
   <input type="hidden" name="staySignedIn" value="1">
-  <input type="hidden" name="appUri" value="./">
-  <input type="hidden" name="csrf-token" value="5905efa2-442a-46bf-8703-f35fe8a51888">
+  <input type="hidden" name="appUri" value="">
+  <input type="hidden"
+         name="csrf-token"
+         value="5905efa2-442a-46bf-8703-f35fe8a51888">
+
   <button class="btn btn-primary" type="submit">
     <i class="fa fa-registered"></i> Connect to RStudio Server
   </button>
 </form>
+
+<iframe id="rstudio-auth-frame"
+        name="rstudio-auth-frame"
+        title="RStudio authentication"
+        hidden>
+</iframe>
+
 <script>
 <%#
-As of Rstudio 1.4, a CSRF token is required to authenticate. This is normally
-set on the sign-in page, but since we are bypassing the sign-in page and
-POSTing directly, we need to ensure that the CSRF token cookie is set ahead of
-time (i.e. just before the form submission).  When Rstudio receives the POST
-request, it will compare the POSTed csrf token against the value of the cookie.
+RStudio must use www-root-path so Posit Assistant generates WebSocket URLs
+under the Open OnDemand rnode path.
+
+https://github.com/rstudio/rstudio/issues/18621
+
+RStudio consequently returns a prefix-aware redirect after authentication,
+which OOD's rnode proxy prefixes again. Authentication is submitted through a
+hidden iframe so the browser processes RStudio's authentication cookies. Once
+that redirect chain finishes, the separately opened tab is sent directly to
+the known external application root.
 %>
-function connect_rstudio(path, form) {
-  const csrf_token = form.elements['csrf-token'].value;
-  const new_cookie = `csrf-token=${csrf_token}; path=${path}; secure`;
-  console.log("Setting Rstudio csrf-token cookie:", new_cookie);
-  document.cookie = new_cookie;
-  return true;
-}
+(function () {
+  const path = "/rnode/<%= host %>/<%= port %>";
+  const authFrame = document.getElementById("rstudio-auth-frame");
+
+  let authenticationPending = false;
+  let rstudioWindow = null;
+
+  authFrame.addEventListener("load", function () {
+    if (!authenticationPending) {
+      return;
+    }
+
+    authenticationPending = false;
+
+    /*
+     * The iframe has completed the normal form submission and redirect chain.
+     * Authentication cookies returned by RStudio have now been processed,
+     * even though OOD rewrote the final Location header incorrectly.
+     */
+    if (rstudioWindow && !rstudioWindow.closed) {
+      rstudioWindow.location.replace(`${path}/`);
+      rstudioWindow.focus();
+    }
+  });
+
+  window.connect_rstudio = function (form) {
+    const csrfToken = form.elements["csrf-token"].value;
+
+    document.cookie =
+      `csrf-token=${encodeURIComponent(csrfToken)}; ` +
+      `Path=${path}/; SameSite=Strict; Secure`;
+
+    /*
+     * Open the tab synchronously in response to the button click so popup
+     * blockers permit it. The iframe load handler will navigate it after the
+     * ordinary form-based authentication request finishes.
+     */
+    rstudioWindow = window.open("about:blank", "_blank");
+
+    if (!rstudioWindow) {
+      window.alert(
+        "Your browser blocked the RStudio window. " +
+        "Please allow pop-ups for this site and try again."
+      );
+
+      return false;
+    }
+
+    rstudioWindow.document.title = "Connecting to RStudio Server";
+    rstudioWindow.document.body.textContent =
+      "Connecting to RStudio Server...";
+
+    authenticationPending = true;
+
+    /*
+     * Return true so the browser performs the ordinary URL-encoded form POST
+     * to the hidden iframe.
+     */
+    return true;
+  };
+})();
 </script>

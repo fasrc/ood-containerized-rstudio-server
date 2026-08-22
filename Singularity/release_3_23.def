@@ -16,5 +16,8 @@ from: ghcr.io/rocker-org/geospatial:4.6.0
     sh -x ./install_bioc_sysdeps.sh ${BIOCONDUCTOR_VERSION}
     rm ./install_bioc_sysdeps.sh
 
+    # upgrade RStudio Server for newer Posit Assistant (version 1.1.0 in this case) that supports other model providers
+    RSTUDIO_VERSION=2026.08.1+195 /rocker_scripts/install_rstudio.sh 
+
 %labels
     Authors Nathan Weeks, Paula Sanematsu.
