@@ -42,6 +42,7 @@ attributes:
     label: "R version"
 # site-specific: change versions and location of containers
     options:
+      - [ "R 4.6.0 (Bioconductor 3.23, RStudio 2026.05.1)", "/n/sw/singularity_images/informatics/ifxrstudio/ifxrstudio:RELEASE_3_23.sif" ]
       - [ "R 4.5.2 (Bioconductor 3.22, RStudio 2026.01.1)", "/n/sw/singularity_images/informatics/ifxrstudio/ifxrstudio:RELEASE_3_22.sif" ]
       - [ "R 4.4.2 (Bioconductor 3.20, RStudio 2024.12.0)", "/n/sw/singularity_images/informatics/ifxrstudio/ifxrstudio:RELEASE_3_20.sif" ]
       - [ "R 4.4.1 (Bioconductor 3.19, RStudio 2024.04.2)", "/n/sw/singularity_images/informatics/ifxrstudio/ifxrstudio:RELEASE_3_19.sif" ]

@@ -1,0 +1,20 @@
+bootstrap: docker
+from: ghcr.io/rocker-org/geospatial:4.6.0
+
+%environment
+    export LIBSBML_CFLAGS='-I/usr/include'
+    export LIBSBML_LIBS='-lsbml'
+
+
+%post
+    export BIOCONDUCTOR_VERSION=3.23
+
+    apt update
+    apt install -y libsecret-1-dev libboost-all-dev
+
+    wget https://raw.githubusercontent.com/Bioconductor/bioconductor_docker/refs/heads/RELEASE_3_23/bioc_scripts/install_bioc_sysdeps.sh
+    sh -x ./install_bioc_sysdeps.sh ${BIOCONDUCTOR_VERSION}
+    rm ./install_bioc_sysdeps.sh
+
+%labels
+    Authors Nathan Weeks, Paula Sanematsu.

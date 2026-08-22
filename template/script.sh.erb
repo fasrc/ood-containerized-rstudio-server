@@ -231,6 +231,7 @@ echo 1000 > /proc/self/oom_score_adj
    sh -c "echo 'slurm:x:$(id -u slurm):$(id -g slurm)::$(eval echo ~slurm):/bin/sh' >> /etc/passwd && \
    USER=${USER} rserver \
    --www-port ${port} \
+   --www-root-path /rnode/${host}/${port} \
    --auth-none 0 \
    --auth-encrypt-password 0 \
    --auth-pam-helper-path=pam-helper \
