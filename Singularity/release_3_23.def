@@ -10,7 +10,9 @@ from: ghcr.io/rocker-org/geospatial:4.6.0
     export BIOCONDUCTOR_VERSION=3.23
 
     apt update
-    apt install -y libsecret-1-dev libboost-all-dev
+    apt install -y libboost-all-dev
+
+    /rocker_scripts/install_verse.sh
 
     wget https://raw.githubusercontent.com/Bioconductor/bioconductor_docker/refs/heads/RELEASE_3_23/bioc_scripts/install_bioc_sysdeps.sh
     sh -x ./install_bioc_sysdeps.sh ${BIOCONDUCTOR_VERSION}
