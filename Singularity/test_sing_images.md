@@ -23,6 +23,46 @@ Launch OOD RStudio Server with:
 
 * **Number of CPUs to allocate**: 3
 
+## Posit Assistant (RELEASE >= 3.23)
+
+1. Click the "Posit Assistant" button in the toolbar (top-right corner of the screen)
+2. In the Posit Assistant pane, click the "Install Posit Assitant" button
+3. Click "trust this workspace"
+4. Click "Configure another provider"
+5. Select "OpenAI Compatible"
+6. Enter `https://go.apis.huit.harvard.edu/ais-openai-direct-comdev/v2` for the Base URL, and enter an API key obtained from the Harvard API Portal for [OpenAI for Community Developers](https://portal.apis.huit.harvard.edu/docs/ais-openai-direct-limited/1/overview)
+  * *Note:* As of Posit Assistant 1.2.2, the "Test" button is broken in this case (will return "HTTP 500 Internal Server Error", even for a functioning API key)
+7. Click "Save", then "Close"
+8. Select the "gpt-5" model
+  * *Note:* Not all models in the list seem to work with the OpenAI for Community Developers endpoint
+9. Enter a simple prompt (e.g., "What model are you?")
+
+---
+
+*The tests below describe tests that are now automated in the Singularity/run_test.sh script.*
+
+To run:
+
+1. Uncomment the following lines in template/script.sh.erb to mount an empty scratch filesystem over $HOME:
+
+```
+## TESTING: uncomment to use empty $HOME for running run_test.sh
+#readonly job_home="${WORKDIR}/home"
+#mkdir -m 700 -p "${job_home}"
+#binds+=(
+#  ${job_home}:${HOME}
+#  ${HOME}/.fasrcood/dev/ood-containerized-rstudio-server
+#)
+```
+
+2. Launch RStudio Server from a developer sandbox
+
+3. Run the following script in the RStudio Server terminal:
+
+```
+bash .fasrcood/dev/ood-containerized-rstudio-server/Singularity/run_tests.sh
+```
+
 ## Filesystem
 
 * **If the "Start rstudio with a new configuration" box was checked**: the RStudio [user state directory](https://docs.posit.co/ide/server-pro/admin/rstudio_pro_sessions/workspace_management.html#user-state-storage) (~/.local/share/rstudio) to be a mountpoint for a scratch filesystem (created by `singularity exec --scratch ...`), the following `findmnt` command should list ~/.local/share/rstudio:
@@ -91,6 +131,15 @@ TARGET    FSTYPE SOURCE
    ```
 
 ## Python packages via `pip` (RELEASE <= 3.19)
+
+> **Broken as of RELEASE_3_19 (checked 2026-09-01); use reticulate instead.**
+> The image ships an *active* virtualenv (`VIRTUAL_ENV=/opt/venv`), so pip
+> installs into it rather than defaulting to `PYTHONUSERBASE`, and it is
+> read-only: `OSError: [Errno 30] Read-only file system`. `pip install --user`
+> is refused as well, because `/opt/venv/pyvenv.cfg` sets
+> `include-system-site-packages = false`. Note that `pip install numpy` still
+> looks like it works -- numpy is already in `/opt/venv`, so it is a no-op.
+> The transcripts below are from RELEASE_3_18, which ran the system python.
 
 0. Start RStudio Server with "Start rstudio with a new configuration" checked
 
