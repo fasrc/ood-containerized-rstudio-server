@@ -1,8 +1,16 @@
-<form id="rstudio-connect-form"
+<%#
+The OOD sessions page renders this view once per running session, so every id,
+iframe name, and JavaScript symbol must be unique per session. host/port is
+unique across concurrently running sessions.
+%>
+<% session_key = "#{host}-#{port}".gsub(/[^A-Za-z0-9_-]/, "-") %>
+<% form_id = "rstudio-connect-form-#{session_key}" %>
+<% frame_id = "rstudio-auth-frame-#{session_key}" %>
+
+<form id="<%= form_id %>"
       action="/rnode/<%= host %>/<%= port %>/auth-do-sign-in"
       method="post"
-      target="rstudio-auth-frame"
-      onsubmit="return connect_rstudio(this);">
+      target="<%= frame_id %>">
   <input type="hidden" name="username" value="<%= ENV["USER"] %>">
   <input type="hidden" name="password" value="<%= password %>">
   <input type="hidden" name="staySignedIn" value="1">
@@ -16,8 +24,8 @@
   </button>
 </form>
 
-<iframe id="rstudio-auth-frame"
-        name="rstudio-auth-frame"
+<iframe id="<%= frame_id %>"
+        name="<%= frame_id %>"
         title="RStudio authentication"
         hidden>
 </iframe>
@@ -37,7 +45,12 @@ the known external application root.
 %>
 (function () {
   const path = "/rnode/<%= host %>/<%= port %>";
-  const authFrame = document.getElementById("rstudio-auth-frame");
+  const form = document.getElementById("<%= form_id %>");
+  const authFrame = document.getElementById("<%= frame_id %>");
+
+  if (!form || !authFrame) {
+    return;
+  }
 
   let authenticationPending = false;
   let rstudioWindow = null;
@@ -60,7 +73,7 @@ the known external application root.
     }
   });
 
-  window.connect_rstudio = function (form) {
+  form.addEventListener("submit", function (event) {
     const csrfToken = form.elements["csrf-token"].value;
 
     document.cookie =
@@ -75,12 +88,14 @@ the known external application root.
     rstudioWindow = window.open("about:blank", "_blank");
 
     if (!rstudioWindow) {
+      event.preventDefault();
+
       window.alert(
         "Your browser blocked the RStudio window. " +
         "Please allow pop-ups for this site and try again."
       );
 
-      return false;
+      return;
     }
 
     rstudioWindow.document.title = "Connecting to RStudio Server";
@@ -90,10 +105,9 @@ the known external application root.
     authenticationPending = true;
 
     /*
-     * Return true so the browser performs the ordinary URL-encoded form POST
-     * to the hidden iframe.
+     * The event is not cancelled, so the browser performs the ordinary
+     * URL-encoded form POST into this session's hidden iframe.
      */
-    return true;
-  };
+  });
 })();
 </script>
