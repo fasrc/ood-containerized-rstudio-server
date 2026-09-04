@@ -2,6 +2,18 @@
 # Start RStudio Server
 #
 
+# site-specific output job information
+echo "======================= Job information ======================="
+echo "Session ID      <%= session.id %>"
+echo "Slurm job ID    ${SLURM_JOBID}"
+echo "Partition       ${SLURM_JOB_PARTITION}"
+echo "Node            ${SLURM_JOB_NODELIST}"
+echo "Cores           ${SLURM_CPUS_PER_TASK}"
+echo "Memory (MB)     ${SLURM_MEM_PER_NODE}"
+echo "R version       <%= context.r_version %>"
+echo "Slurm options   <%= context.extra_slurm %>"
+echo "==============================================================="
+
 container_image=<%= context.r_version %>
 
 # Set working directory to home directory

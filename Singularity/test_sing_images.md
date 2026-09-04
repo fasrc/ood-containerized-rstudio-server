@@ -25,6 +25,9 @@ Launch OOD RStudio Server with:
 
 ## Posit Assistant (RELEASE >= 3.23)
 
+> [!IMPORTANT]
+> **Manual tests**
+
 1. Click the "Posit Assistant" button in the toolbar (top-right corner of the screen)
 2. In the Posit Assistant pane, click the "Install Posit Assitant" button
 3. Click "trust this workspace"
@@ -39,11 +42,13 @@ Launch OOD RStudio Server with:
 
 ---
 
-*The tests below describe tests that are now automated in the Singularity/run_test.sh script.*
+## Automated tests
+
+*The tests below describe tests that are now automated in the `Singularity/run_test.sh` script.*
 
 To run:
 
-1. Uncomment the following lines in template/script.sh.erb to mount an empty scratch filesystem over $HOME:
+1. Uncomment the following lines in `template/script.sh.erb` to mount an empty scratch filesystem over $HOME:
 
 ```
 ## TESTING: uncomment to use empty $HOME for running run_test.sh
