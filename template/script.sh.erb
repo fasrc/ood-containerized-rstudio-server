@@ -2,6 +2,18 @@
 # Start RStudio Server
 #
 
+# site-specific output job information
+echo "======================= Job information ======================="
+echo "Session ID      <%= session.id %>"
+echo "Slurm job ID    ${SLURM_JOBID}"
+echo "Partition       ${SLURM_JOB_PARTITION}"
+echo "Node            ${SLURM_JOB_NODELIST}"
+echo "Cores           ${SLURM_CPUS_PER_TASK}"
+echo "Memory (MB)     ${SLURM_MEM_PER_NODE}"
+echo "R version       <%= context.r_version %>"
+echo "Slurm options   <%= context.extra_slurm %>"
+echo "==============================================================="
+
 container_image=<%= context.r_version %>
 
 # Set working directory to home directory
@@ -63,7 +75,6 @@ binds+=(
   /usr/bin/sacct
   /usr/bin/scancel
   /usr/bin/scontrol
-  /usr/bin/scrontab
   /usr/bin/sinfo
   /usr/bin/squeue
   /usr/bin/sshare
@@ -83,6 +94,14 @@ binds+=(
   /net
   /cvmfs
 )
+
+## TESTING: uncomment to use empty $HOME for running run_test.sh
+#readonly job_home="${WORKDIR}/home"
+#mkdir -m 700 -p "${job_home}"
+#binds+=(
+#  ${job_home}:${HOME}
+#  ${HOME}/.fasrcood/dev/ood-containerized-rstudio-server
+#)
 
 # Join with commas and export as one command
 export SINGULARITY_BIND="$(IFS=,; printf '%s' "${binds[*]}")"
@@ -141,8 +160,18 @@ export SINGULARITY_BIND="${SINGULARITY_BIND},${WORKDIR}/rstudio:$HOME/.local/sha
 # Replace Renviron.site with the minimal version defined for Rocker container images:
 # https://github.com/rocker-org/rocker-versioned2/blob/master/scripts/install_R_source.sh#L148-L149
 # TODO: remove if/when no longer using Bioconductor container images
+#
+# NB: use R_LIBS_SITE, not R_LIBS as the Rocker images currently do. R places
+# R_LIBS entries ahead of R_LIBS_USER in .libPaths(), so install.packages()
+# defaults to the read-only /usr/local/lib/R/site-library: interactive R falls
+# back to R_LIBS_USER, but non-interactive R (Rscript, R CMD INSTALL,
+# Quarto/R Markdown renders) fails with "unable to install packages".
+# R_LIBS_SITE populates .Library.site, which always sorts after R_LIBS_USER.
+# Upstream is tracking the same problem:
+# https://github.com/rocker-org/rocker-versioned2/issues/857
+# https://github.com/rocker-org/rocker-versioned2/pull/866
 cat >${WORKDIR}/Renviron.site <<'END'
-R_LIBS=${R_LIBS-'/usr/local/lib/R/site-library:/usr/local/lib/R/library'}
+R_LIBS_SITE=${R_LIBS_SITE-'/usr/local/lib/R/site-library:/usr/local/lib/R/library'}
 END
 
 
@@ -231,6 +260,7 @@ echo 1000 > /proc/self/oom_score_adj
    sh -c "echo 'slurm:x:$(id -u slurm):$(id -g slurm)::$(eval echo ~slurm):/bin/sh' >> /etc/passwd && \
    USER=${USER} rserver \
    --www-port ${port} \
+   --www-root-path /rnode/${host}/${port} \
    --auth-none 0 \
    --auth-encrypt-password 0 \
    --auth-pam-helper-path=pam-helper \

@@ -1,0 +1,25 @@
+bootstrap: docker
+from: ghcr.io/rocker-org/geospatial:4.6.0
+
+%environment
+    export LIBSBML_CFLAGS='-I/usr/include'
+    export LIBSBML_LIBS='-lsbml'
+
+
+%post
+    export BIOCONDUCTOR_VERSION=3.23
+
+    apt update
+    apt install -y libboost-all-dev
+
+    /rocker_scripts/install_verse.sh
+
+    wget https://raw.githubusercontent.com/Bioconductor/bioconductor_docker/refs/heads/RELEASE_3_23/bioc_scripts/install_bioc_sysdeps.sh
+    sh -x ./install_bioc_sysdeps.sh ${BIOCONDUCTOR_VERSION}
+    rm ./install_bioc_sysdeps.sh
+
+    # upgrade RStudio Server for newer Posit Assistant (version 1.1.0 in this case) that supports other model providers
+    RSTUDIO_VERSION=2026.08.1+195 /rocker_scripts/install_rstudio.sh 
+
+%labels
+    Authors Nathan Weeks, Paula Sanematsu.
