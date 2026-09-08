@@ -2,6 +2,18 @@
 # Start RStudio Server
 #
 
+# site-specific output job information
+echo "======================= Job information ======================="
+echo "Session ID      <%= session.id %>"
+echo "Slurm job ID    ${SLURM_JOBID}"
+echo "Partition       ${SLURM_JOB_PARTITION}"
+echo "Node            ${SLURM_JOB_NODELIST}"
+echo "Cores           ${SLURM_CPUS_PER_TASK}"
+echo "Memory (MB)     ${SLURM_MEM_PER_NODE}"
+echo "R version       <%= context.r_version %>"
+echo "Slurm options   <%= context.extra_slurm %>"
+echo "==============================================================="
+
 container_image=<%= context.r_version %>
 
 # Set working directory to home directory
@@ -63,7 +75,6 @@ binds+=(
   /usr/bin/sacct
   /usr/bin/scancel
   /usr/bin/scontrol
-  /usr/bin/scrontab
   /usr/bin/sinfo
   /usr/bin/squeue
   /usr/bin/sshare
@@ -84,16 +95,25 @@ binds+=(
   /cvmfs
 )
 
+## TESTING: uncomment to use empty $HOME for running run_test.sh
+#readonly job_home="${WORKDIR}/home"
+#mkdir -m 700 -p "${job_home}"
+#binds+=(
+#  ${job_home}:${HOME}
+#  ${HOME}/.fasrcood/dev/ood-containerized-rstudio-server
+#)
+
 # Join with commas and export as one command
 export SINGULARITY_BIND="$(IFS=,; printf '%s' "${binds[*]}")"
 
 readonly image_version=${image_tag#RELEASE_3_} 
 
-if [ ${image_version} -ge 16 ]
+if [ ${image_version} -ge 18 ]
 then
   # https://github.com/rstudio/rstudio/issues/5449#issuecomment-534184951
   # https://github.com/grst/rstudio-server-conda/pull/18
-  extra_options="--auth-timeout-minutes=0 --auth-stay-signed-in-days=30 --server-user $USER"
+  # https://github.com/posit-dev/assistant-feedback/issues/95#issuecomment-5372113172
+  extra_options="--auth-timeout-minutes=0 --auth-stay-signed-in-days=30 --server-user $USER --www-root-path /rnode/${host}/${port}"
   mkdir -m 700 -p ${WORKDIR}/var/lib/rstudio-server 
   cat > ${WORKDIR}/database.conf <<END
 provider=sqlite
@@ -103,11 +123,8 @@ END
 fi
 
 case ${image_version} in
-  18|19) mkdir -p ${PYTHONUSERBASE=${R_LIBS_USER}/python-user-base} ;;
-esac
-
-case ${image_version} in
-  16|18|19)
+  18|19)
+    mkdir -p ${PYTHONUSERBASE=${R_LIBS_USER}/python-user-base}
     # work around Ubuntu 22.04 / OpenBLAS 0.3.20 issue affecting Seurat (at least) (Ticket RT177061)
     # https://github.com/rocker-org/rocker-versioned2/issues/836
     # Does not impact docker.io/bioconductor/ml-verse:3.20 (Ubuntu 24.04 / OpenBLAS 0.3.26)
@@ -141,8 +158,18 @@ export SINGULARITY_BIND="${SINGULARITY_BIND},${WORKDIR}/rstudio:$HOME/.local/sha
 # Replace Renviron.site with the minimal version defined for Rocker container images:
 # https://github.com/rocker-org/rocker-versioned2/blob/master/scripts/install_R_source.sh#L148-L149
 # TODO: remove if/when no longer using Bioconductor container images
+#
+# NB: use R_LIBS_SITE, not R_LIBS as the Rocker images currently do. R places
+# R_LIBS entries ahead of R_LIBS_USER in .libPaths(), so install.packages()
+# defaults to the read-only /usr/local/lib/R/site-library: interactive R falls
+# back to R_LIBS_USER, but non-interactive R (Rscript, R CMD INSTALL,
+# Quarto/R Markdown renders) fails with "unable to install packages".
+# R_LIBS_SITE populates .Library.site, which always sorts after R_LIBS_USER.
+# Upstream is tracking the same problem:
+# https://github.com/rocker-org/rocker-versioned2/issues/857
+# https://github.com/rocker-org/rocker-versioned2/pull/866
 cat >${WORKDIR}/Renviron.site <<'END'
-R_LIBS=${R_LIBS-'/usr/local/lib/R/site-library:/usr/local/lib/R/library'}
+R_LIBS_SITE=${R_LIBS_SITE-'/usr/local/lib/R/site-library:/usr/local/lib/R/library'}
 END
 
 
