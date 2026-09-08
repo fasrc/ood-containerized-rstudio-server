@@ -108,11 +108,12 @@ export SINGULARITY_BIND="$(IFS=,; printf '%s' "${binds[*]}")"
 
 readonly image_version=${image_tag#RELEASE_3_} 
 
-if [ ${image_version} -ge 16 ]
+if [ ${image_version} -ge 18 ]
 then
   # https://github.com/rstudio/rstudio/issues/5449#issuecomment-534184951
   # https://github.com/grst/rstudio-server-conda/pull/18
-  extra_options="--auth-timeout-minutes=0 --auth-stay-signed-in-days=30 --server-user $USER"
+  # https://github.com/posit-dev/assistant-feedback/issues/95#issuecomment-5372113172
+  extra_options="--auth-timeout-minutes=0 --auth-stay-signed-in-days=30 --server-user $USER --www-root-path /rnode/${host}/${port}"
   mkdir -m 700 -p ${WORKDIR}/var/lib/rstudio-server 
   cat > ${WORKDIR}/database.conf <<END
 provider=sqlite
@@ -122,11 +123,8 @@ END
 fi
 
 case ${image_version} in
-  18|19) mkdir -p ${PYTHONUSERBASE=${R_LIBS_USER}/python-user-base} ;;
-esac
-
-case ${image_version} in
-  16|18|19)
+  18|19)
+    mkdir -p ${PYTHONUSERBASE=${R_LIBS_USER}/python-user-base}
     # work around Ubuntu 22.04 / OpenBLAS 0.3.20 issue affecting Seurat (at least) (Ticket RT177061)
     # https://github.com/rocker-org/rocker-versioned2/issues/836
     # Does not impact docker.io/bioconductor/ml-verse:3.20 (Ubuntu 24.04 / OpenBLAS 0.3.26)
@@ -260,7 +258,6 @@ echo 1000 > /proc/self/oom_score_adj
    sh -c "echo 'slurm:x:$(id -u slurm):$(id -g slurm)::$(eval echo ~slurm):/bin/sh' >> /etc/passwd && \
    USER=${USER} rserver \
    --www-port ${port} \
-   --www-root-path /rnode/${host}/${port} \
    --auth-none 0 \
    --auth-encrypt-password 0 \
    --auth-pam-helper-path=pam-helper \
