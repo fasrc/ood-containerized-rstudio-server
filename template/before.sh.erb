@@ -25,8 +25,8 @@
 #FASSE port range is different
 port=$(find_port ${host} 12000 14000 )
 
-export SINGULARITYENV_USER=${USER}
+export APPTAINERENV_USER=${USER}
 
 # Define a password and export it for RStudio authentication
 password="$(create_passwd 16)"
-export SINGULARITYENV_PASSWORD="${password}"
+export APPTAINERENV_PASSWORD="${password}"
