@@ -316,7 +316,7 @@ The instructions below were adapted from [reticulate docs](https://rstudio.githu
    df.transpose()
    ```
 
-#### Create a`TF` virtualenv and install TensorFlow (RELEASE <= 3.18)
+#### Create a`TF` virtualenv and install TensorFlow (RELEASE == 3.18)
 
 For TensorFlow, ensure that you test on a GPU node.
 
