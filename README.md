@@ -3,8 +3,8 @@
 ## Overview
 
 An [Open OnDemand](https://openondemand.org/) Batch Connect app that launches
-[RStudio Server](https://posit.co/products/open-source/rstudio-server/) in a
-Singularity container on a compute node. The containers are based on
+[RStudio Server](https://posit.co/products/open-source/rstudio-server/) in an
+Apptainer container on a compute node. The containers are based on
 [Rocker](https://rocker-project.org/) /
 [Bioconductor](https://www.bioconductor.org) images and provide a
 curated R environment including geospatial and Bioconductor packages.
@@ -41,11 +41,13 @@ Slurm-related libraries and executables for querying Slurm are bind-mounted into
 Slurm executables for submitting jobs are currently not supported, due to potential
 for user confusion from software/environment-variable mismatch between container and host.
 
-## Singularity containers
+## Apptainer containers
 
-You can build the Singularity containers using the Singularity definition files
+You can build Singularity Image Files (SIFs) using the Apptainer definition files
 provided in this repository:
 
+- [RELEASE 3.23](Singularity/release_3_23.def)
+- [RELEASE 3.22](Singularity/release_3_22.def)
 - [RELEASE 3.20](Singularity/release_3_20.def)
 - [RELEASE 3.19](Singularity/release_3_19.def)
 - [RELEASE 3.18](Singularity/release_3_18.def)
@@ -77,11 +79,11 @@ packages directly in the cluster's OS, we have to select the right compilers,
 libraries, etc. This proved to be very time consuming for us and made users
 very frustrated.
 
-Our solution was to develop a Singularity container with RStudio Server and many
+Our solution was to develop an Apptainer container with RStudio Server and many
 of the packages precompiled to ensure an easy installation (for most cases) for
 users. To implement this, we use the [rocker project](https://github.com/rocker-org/rocker-versioned2). The upstream (rocker) project
 pins to particular date for all R versions (except the latest version), and our
-(Singularity) images inherit that pinning; e.g. see this [dockerfile](
+(Apptainer) images inherit that pinning; e.g. see this [dockerfile](
 https://github.com/rocker-org/rocker-versioned2/blob/23b6961dcc187b7290b35ae4434180dfb1fa7f24/dockerfiles/r-ver_4.2.1.Dockerfile#L16).
 
 The rationale for this is described a bit more in this [GitHub

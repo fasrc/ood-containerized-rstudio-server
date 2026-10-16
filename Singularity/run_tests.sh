@@ -234,19 +234,19 @@ r_file() { # r_file <basename> ; writes preamble, returns path on stdout
 # context detection
 #-----------------------------------------------------------------------------
 
-# The app launches the image with "singularity exec --containall", which implies
-# --cleanenv, so SINGULARITY_CONTAINER / APPTAINER_CONTAINER are usually NOT set
+# The app launches the image with "apptainer exec --containall", which implies
+# --cleanenv, so APPTAINER_CONTAINER is usually NOT set
 # inside the session. Detect the container from the filesystem first and fall
 # back to whichever of the environment variables happens to survive.
 in_container=0
 container_desc="<not in a container>"
-if [ -e /.singularity.d ] || [ -e /singularity ] || [ -e /.dockerenv ] \
-   || [ -n "${SINGULARITY_CONTAINER:-}" ] || [ -n "${APPTAINER_CONTAINER:-}" ] \
-   || [ -n "${SINGULARITY_NAME:-}" ] || [ -n "${APPTAINER_NAME:-}" ] \
-   || [ -n "${SINGULARITY_ENVIRONMENT:-}" ] || [ -n "${APPTAINER_ENVIRONMENT:-}" ]; then
+if [ -e /.singularity.d ] \
+   || [ -n "${APPTAINER_CONTAINER:-}" ] || [ -n "${APPTAINER_CONTAINER:-}" ] \
+   || [ -n "${APPTAINER_NAME:-}" ] || [ -n "${APPTAINER_NAME:-}" ] \
+   || [ -n "${APPTAINER_ENVIRONMENT:-}" ] || [ -n "${APPTAINER_ENVIRONMENT:-}" ]; then
   in_container=1
-  container_desc=${SINGULARITY_CONTAINER:-${APPTAINER_CONTAINER:-${SINGULARITY_NAME:-${APPTAINER_NAME:-}}}}
-  [ -n "${container_desc}" ] || container_desc="detected via /.singularity.d (no SINGULARITY_* in the environment; --containall implies --cleanenv)"
+  container_desc=${APPTAINER_CONTAINER:-${APPTAINER_CONTAINER:-${APPTAINER_NAME:-${APPTAINER_NAME:-}}}}
+  [ -n "${container_desc}" ] || container_desc="detected via /.singularity.d (no APPTAINER_* in the environment; --containall implies --cleanenv)"
 fi
 
 image_tag=""
@@ -296,7 +296,7 @@ test_env() {
   if [ ${in_container} -eq 1 ]; then
     pass "env/in-container" "${container_desc}"
   else
-    fail "env/in-container" "not running inside the Singularity container -- run this from the RStudio Server Terminal pane"
+    fail "env/in-container" "not running inside the Apptainer container -- run this from the RStudio Server Terminal pane"
   fi
 
   check_nonempty "env/R_LIBS_USER-set" "${R_LIBS_USER:-}"
@@ -417,7 +417,7 @@ test_fs() {
     fail "fs/user-state-dir-writable" "${state_dir} not writable"
   fi
 
-  # scratch mounts created by "singularity exec --scratch /run,/scratch,/tmp,..."
+  # scratch mounts created by "apptainer exec --scratch /run,/scratch,/tmp,..."
   local d
   for d in /tmp /run /var/lib/rstudio-server; do
     if [ -w "${d}" ]; then pass "fs/writable${d}"; else fail "fs/writable${d}" "not writable"; fi
@@ -791,7 +791,7 @@ test_manual() {
 # main
 #-----------------------------------------------------------------------------
 
-printf '%s%s%s\n' "${C_HDR}" "RStudio Server Singularity image tests" "${C_OFF}"
+printf '%s%s%s\n' "${C_HDR}" "RStudio Server Apptainer image tests" "${C_OFF}"
 printf 'host          : %s\n' "$(hostname)"
 printf 'container     : %s\n' "${container_desc}"
 printf 'R_LIBS_USER   : %s\n' "${R_LIBS_USER:-<unset>}"
