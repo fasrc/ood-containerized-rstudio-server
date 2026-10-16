@@ -1,6 +1,6 @@
-# Test Singularity Images
+# Test Apptainer Images
 
-This document contains tests that should be performed on a new Singularity image
+This document contains tests that should be performed on a new Apptainer image
 before it is deployed on Open OnDemand.
 
 The tests were first developed for release 3.15, when Nathan Weeks added

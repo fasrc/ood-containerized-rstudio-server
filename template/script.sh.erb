@@ -193,7 +193,7 @@ export PIP_NO_CACHE_DIR=off
 
 # this is no-op for Bioconductor >= 3.18
 # it would also impact release 3.17 as well, but we skipped that one
-# for >=3.18, we added the conda-forge repo in the Singularity image
+# for >=3.18, we added the conda-forge repo in the Apptainer image
 export RETICULATE_MINICONDA_ENABLED=FALSE
 
 if [ "${PYTHONUSERBASE:-}" ] # backwards compatibility w/ RELEASE_3_1[589]
@@ -231,14 +231,6 @@ then
   export APPTAINER_BIND="${APPTAINER_BIND},${WORKDIR}/rsession.conf:/etc/rstudio/rsession.conf"
 fi
 
-# bioconductor/bioconductor_docker:RELEASE_3_10 sets USER in Dockerfile:
-# https://github.com/Bioconductor/bioconductor_docker/blob/RELEASE_3_10/Dockerfile#L154
-#
-# Apparently, quay.io/singularity/docker2singularity:v3.5.1 then sets USER in
-# the /.singularity.d/env/10-docker.sh, which overrides any externally-set USER
-# (in the environment of the "singularity exec" commmand). To work around this,
-# setting USER in a shell command that invokes the rserver process
- 
 # site-specific: if you don't want to handle children processes out-of-memory (OOM) errors, then only use the `apptainer exec` command
 # set oom_score_adj to 1000 in job script (parent) so it app is terminated in
 # the event the rsession (child) OOMs to avoid the appearance of the app
@@ -256,7 +248,7 @@ echo 1000 > /proc/self/oom_score_adj
    --workdir "${WORKDIR}" \
    "${container_image}" \
    sh -c "echo 'slurm:x:$(id -u slurm):$(id -g slurm)::$(eval echo ~slurm):/bin/sh' >> /etc/passwd && \
-   USER=${USER} rserver \
+   rserver \
    --www-port ${port} \
    --auth-none 0 \
    --auth-encrypt-password 0 \
