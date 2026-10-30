@@ -12,6 +12,10 @@ from: ghcr.io/rocker-org/geospatial:4.6.0
     apt update
     apt install -y libboost-all-dev
 
+    # added on Oct 2026 due to EMudhra CA compromise
+    # https://ubuntu.com/blog/emudhra-ca-compromise-fixes-available
+    apt-get update && apt-get install --only-upgrade -y ca-certificates
+
     /rocker_scripts/install_verse.sh
 
     wget https://raw.githubusercontent.com/Bioconductor/bioconductor_docker/refs/heads/RELEASE_3_23/bioc_scripts/install_bioc_sysdeps.sh
