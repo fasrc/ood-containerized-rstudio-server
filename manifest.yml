@@ -12,3 +12,4 @@ description: |
   See [RStudio Server OOD app](https://docs.rc.fas.harvard.edu/kb/rstudio-server-vs-rstudio-desktop) for more information.
 
   * User-installed R libraries will be installed in *~/R/ifxrstudio/\<IMAGE_TAG\>*.
+  [Cannon]: https://www.rc.fas.harvard.edu/services/cluster-computing/#Cannon
