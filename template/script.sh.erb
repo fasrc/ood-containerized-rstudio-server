@@ -107,7 +107,7 @@ binds+=(
 export APPTAINER_BIND="$(IFS=,; printf '%s' "${binds[*]}")"
 
 # only needed for fasse
-export SINGULARITY_BIND="/ncf:/ncf,${SINGULARITY_BIND}"
+export APPTAINER_BIND="/ncf:/ncf,${APPTAINER_BIND}"
 
 readonly image_version=${image_tag#RELEASE_3_} 
 
